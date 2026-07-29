@@ -1,3 +1,43 @@
+<!--
+==============================================================================
+ARCHITECTURAL SYSTEM HEADER: LICENSE & COMPLIANCE CONTROLLER
+==============================================================================
+Role: Legal Framework & Compliance Definition
+System Context: This file defines the legal boundaries for the entire repository.
+All source code, modules, and assets in this project are bound by these terms.
+Integrations:
+  - CI/CD Pipeline: Verified via 'scripts/verify-license-compliance.sh'
+  - Documentation: Supported by 'docs/LICENSE_FAQ.md'
+  - Commercial Gateway: Directs commercial inquiries to the copyright holder
+==============================================================================
+-->
+
+# License & Compliance Framework
+
+This repository is licensed under the **PolyForm Noncommercial License 1.0.0**. Below is a developer-friendly summary of your rights and obligations, followed by the official legal text.
+
+## 📊 Quick Summary (TL;DR)
+
+| Permitted Uses | Prohibited Uses | Required Actions |
+| :--- | :--- | :--- |
+| ✅ **Personal Study & Research** | ❌ **Commercial SaaS or Products** | ⚠️ **Include Copyright Notice** in all copies |
+| ✅ **Hobby & Amateur Projects** | ❌ **Paid Services or Consulting** | ⚠️ **Retain License Terms** in forks and redistributions |
+| ✅ **Charitable & Educational Use** | ❌ **Internal Business Operations** | ⚠️ **32-Day Cure Period** to fix any violations |
+| ✅ **Government & Public Safety** | ❌ **Sublicensing or Transferring** | ⚠️ **Immediate Termination** if patent claim is filed |
+
+---
+
+## 💼 Commercial Licensing & Inquiries
+
+This license **does not** grant any right to use the software for commercial purposes. If you or your organization wish to use this software commercially (including internal business use, commercial SaaS, or paid support), please contact the copyright holder to negotiate a commercial license:
+
+* **Contact:** craighckby-stack (via GitHub or official channels)
+* **Subject:** Commercial License Inquiry - [Project Name]
+
+---
+
+## ⚖️ Official Legal Text
+
 PolyForm Noncommercial License 1.0.0
 
 <https://polyformproject.org/licenses/noncommercial/1.0.0>
@@ -128,3 +168,15 @@ licenses.
 This license does not grant any right to use the software for a
 commercial purpose. If you want to use this software commercially,
 contact the licensor to discuss a separate commercial license.
+
+---
+
+## 🛡️ Automated Compliance Verification
+
+To ensure all files in your repository comply with the **Required Notice** clause of this license, you can run the automated compliance verification script:
+
+```bash
+bash scripts/verify-license-compliance.sh
+```
+
+This script can be integrated into your pre-commit hooks or CI/CD pipelines to prevent accidental non-compliant commits.
