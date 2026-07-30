@@ -14,6 +14,7 @@ Integrations:
   - memory/local/memory.json: Persists the flat-file execution memory.
   - modules/*: Defines the executable capabilities.
   - lib/diagnostic-engine.ts: System health and integrity verification.
+  - lib/diagnostic-utils.ts: Low-level integrity validation hooks.
 ==============================================================================
 -->
 
@@ -93,4 +94,4 @@ To ensure the kernel remains operational, the system performs a diagnostic check
 - **Verification Hook:** Every boot cycle triggers `runSystemDiagnostics()` to validate the environment and persistence layers.
 - **Compliance:** Any failure in the diagnostic suite halts execution to prevent state corruption, adhering to the 'Zero-Leak' architecture patterns.
 
-For automated health checks and integration details, refer to `lib/diagnostic-engine.ts`.
+For automated health checks and integration details, refer to `lib/diagnostic-engine.ts` and `lib/diagnostic-utils.ts`.
