@@ -1,7 +1,7 @@
 <!-- 
   AI AGENT OS: MASTER ARCHITECTURE SPECIFICATION
   Role: Defines the kernel lifecycle, diagnostic protocols, and module integration standards.
-  Connected to: src/lib/diagnostic-engine.ts, env_loader.py, kernel.py
+  Connected to: src/lib/diagnostic-engine.ts, env_loader.py, kernel.py, scripts/diagnostic-hook.sh
   Status: DIAGNOSTIC-AWARE
 -->
 
