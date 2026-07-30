@@ -1,15 +1,12 @@
 """
 ENVIRONMENT SCHEMA DEFINITIONS
-Role: Centralized configuration rules for system environment variables.
+Role: Centralized configuration for required environment variables.
 """
 
-SCHEMA_RULES = {
-    "SYSTEM_MODE": {
-        "allowed": ["DEVELOPMENT", "PRODUCTION", "TEST"],
-        "required": True
-    },
-    "LOG_LEVEL": {
-        "allowed": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        "required": False
-    }
-}
+# List of mandatory environment variables for system operation
+REQUIRED_ENV_KEYS = [
+    "API_KEY",
+    "DB_URL",
+    "SYSTEM_ID",
+    "ENVIRONMENT"
+]
