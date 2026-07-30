@@ -3,6 +3,7 @@
 ARCHITECTURAL SYSTEM HEADER: ENVIRONMENT LOADER & CONFIGURATION CONTROLLER
 ==============================================================================
 Role: Environment Configuration & Variable Expansion Engine
+Diagnostic Integrity Hook: Enabled (via env_diagnostic_utils.py)
 System Context: This module serves as the foundational bootstrap layer of the
                 Local Agent Kernel. It executes before any other system component
                 to guarantee that all API keys, model endpoints, and operational
@@ -11,6 +12,7 @@ Integrations:
   - kernel.py: Bootstraps the kernel environment.
   - llm_router.py: Provides API keys and local model URLs.
   - env_validator.py: Performs schema integrity checks.
+  - env_diagnostic_utils.py: Provides runtime health verification.
   - .env / .env.example: Reads and parses configuration schemas.
 ==============================================================================
 """
@@ -20,6 +22,7 @@ import re
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from env_validator import verify_env_integrity
+from env_diagnostic_utils import log_diagnostic_event
 
 ENV_FILE = Path(__file__).parent / ".env"
 
@@ -43,10 +46,10 @@ def parse_env_text(text: str) -> Dict[str, str]:
             if "=" not in line: continue
             key, _, val = line.partition("=")
             key, val = key.strip(), val.strip()
-            if val.startswith('"') and not (val.endswith('"') and len(val) >= 2 and val[-2] != '\\'):
+            if val.startswith('"') and not (val.endswith('"') and len(val) >= 2 and val[-2] != '\'):
                 in_quote, current_key = '"', key
                 current_value_lines.append(val[1:])
-            elif val.startswith("'") and not (val.endswith("'") and len(val) >= 2 and val[-2] != '\\'):
+            elif val.startswith("'") and not (val.endswith("'") and len(val) >= 2 and val[-2] != '\'):
                 in_quote, current_key = "'", key
                 current_value_lines.append(val[1:])
             else:
@@ -91,9 +94,11 @@ def expand_variables(env_dict: Dict[str, str]) -> Dict[str, str]:
 def load_env() -> None:
     """
     Loads environment variables from the .env file. 
-    Triggers post-load integrity verification.
+    Triggers post-load integrity verification and diagnostic logging.
     """
-    if not ENV_FILE.exists(): return
+    if not ENV_FILE.exists(): 
+        log_diagnostic_event("ENV_LOADER", "MISSING_FILE", "No .env file found.")
+        return
     try:
         raw_text = ENV_FILE.read_text(encoding="utf-8")
         parsed = parse_env_text(raw_text)
@@ -103,7 +108,9 @@ def load_env() -> None:
         
         # Post-load integrity check
         verify_env_integrity()
+        log_diagnostic_event("ENV_LOADER", "SUCCESS", "Environment loaded and verified.")
     except Exception as e:
+        log_diagnostic_event("ENV_LOADER", "FAILURE", str(e))
         print(f"[env_loader warning] Failed to load .env file: {e}")
 
 
