@@ -88,3 +88,7 @@ if (report.status !== 'HEALTHY') {
   console.error("Routing subsystem integrity breach detected.");
 }
 ```
+
+## ⚖️ Diagnostic Governance
+
+All modifications to the `ROUTING_TABLE` or the fallback chain constants MUST be validated against the `ComplianceValidator` test suite. This ensures that the routing logic remains a verifiable component of the system's architectural integrity, adhering to the 'Fail-Fast' principle.
