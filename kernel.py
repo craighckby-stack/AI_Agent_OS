@@ -14,6 +14,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Dict, Any, Tuple, Optional
 
 from env_loader import load_env
 from llm_router import route_via_llm
@@ -33,33 +34,36 @@ ROUTING_TABLE = {
     "color": "sky_colour",
 }
 
+class KernelState:
+    """Encapsulates system state and registry management."""
+    @staticmethod
+    def build_registry() -> Dict[str, Any]:
+        registry = {}
+        for readme in MODULES_DIR.glob("*/README.md"):
+            text = readme.read_text()
+            name_match = re.search(r"name:\s*(\S+)", text)
+            purpose_match = re.search(r"purpose:\s*(.+)", text)
+            if name_match:
+                registry[name_match.group(1)] = {
+                    "purpose": purpose_match.group(1).strip() if purpose_match else "",
+                }
+        return registry
 
-def build_registry() -> dict:
-    """Scan modules/*/README.md and pull name + purpose for each module."""
-    registry = {}
-    for readme in MODULES_DIR.glob("*/README.md"):
-        text = readme.read_text()
-        name_match = re.search(r"name:\s*(\S+)", text)
-        purpose_match = re.search(r"purpose:\s*(.+)", text)
-        if name_match:
-            registry[name_match.group(1)] = {
-                "purpose": purpose_match.group(1).strip() if purpose_match else "",
-            }
-    return registry
+    @staticmethod
+    def load_memory() -> Dict[str, Any]:
+        if not MEMORY_FILE.exists():
+            return {}
+        try:
+            return json.loads(MEMORY_FILE.read_text())
+        except json.JSONDecodeError:
+            return {}
 
+    @staticmethod
+    def save_memory(memory: Dict[str, Any]) -> None:
+        MEMORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+        MEMORY_FILE.write_text(json.dumps(memory, indent=2))
 
-def load_memory() -> dict:
-    if not MEMORY_FILE.exists():
-        return {}
-    return json.loads(MEMORY_FILE.read_text())
-
-
-def save_memory(memory: dict) -> None:
-    MEMORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    MEMORY_FILE.write_text(json.dumps(memory, indent=2))
-
-
-def route_request(request: str, registry: dict) -> tuple[str | None, str]:
+def route_request(request: str, registry: Dict[str, Any]) -> Tuple[Optional[str], str]:
     module, provider = route_via_llm(request, registry)
     if module and module in registry:
         return module, f"llm:{provider}"
@@ -70,21 +74,12 @@ def route_request(request: str, registry: dict) -> tuple[str | None, str]:
             return fallback_module, "keyword-fallback"
     return None, "unrouted"
 
-
-def check_memory(memory: dict, module_name: str) -> dict | None:
-    entry = memory.get(module_name)
-    if entry is None or entry.get("confidence", 0) < 90:
-        return None
-    return entry
-
-
 def execute_module(module_name: str) -> str:
     script = MODULES_DIR / module_name / "run.sh"
     result = subprocess.run(
         ["bash", str(script)], capture_output=True, text=True, check=True
     )
     return result.stdout.strip()
-
 
 def run(request: str) -> None:
     # Perform diagnostic health check before execution
@@ -94,16 +89,17 @@ def run(request: str) -> None:
         return
 
     start = time.monotonic()
-    memory = load_memory()
-    registry = build_registry()
+    state = KernelState()
+    memory = state.load_memory()
+    registry = state.build_registry()
 
     module_name, routed_via = route_request(request, registry)
     if module_name is None:
         print(f"No module matched request: {request!r}")
         return
 
-    cached = check_memory(memory, module_name)
-    if cached is not None:
+    cached = memory.get(module_name)
+    if cached and cached.get("confidence", 0) >= 90:
         elapsed = time.monotonic() - start
         print(f"[memory hit — no module execution, routed via {routed_via}]")
         print(f"Result: {cached['result']}")
@@ -117,13 +113,12 @@ def run(request: str) -> None:
         "last_verified": time.strftime("%Y-%m-%d %H:%M:%S"),
         "dependencies": [],
     }
-    save_memory(memory)
+    state.save_memory(memory)
 
     elapsed = time.monotonic() - start
     print(f"[memory miss — executed {module_name}, routed via {routed_via}]")
     print(f"Result: {result}")
     print(f"(elapsed={elapsed*1000:.1f}ms, written to memory)")
-
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
