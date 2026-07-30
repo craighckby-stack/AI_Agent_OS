@@ -3,6 +3,7 @@
 # LICENSE COMPLIANCE VERIFICATION CONTROLLER
 # Role: Scans repository for copyright notices; integrates with system diagnostics.
 # Integration: Connects to license-diagnostic-utils.sh for real-time health reporting.
+# Governance: Enforces 'Fail-Fast' diagnostic integrity hooks.
 # ==============================================================================
 
 set -euo pipefail
