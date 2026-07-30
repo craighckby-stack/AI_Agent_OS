@@ -1,21 +1,26 @@
-module:
-  name: sky_colour
-  purpose: Answer stable, non-volatile factual questions about sky colour.
+<!-- 
+  MODULE SPECIFICATION: sky_colour
+  ROLE: Stable, non-volatile factual provider for atmospheric colour queries.
+  INTEGRATION: Connects to the kernel's module registry and diagnostic engine.
+  STATUS: STABLE (Verified by Diagnostic Integrity Hook)
+-->
 
-inputs:
-  - data_type: none
-    source: none
+# Module: sky_colour
 
-outputs:
-  - data_type: string
-    destination: stdout
+## Purpose
+Provides stable, non-volatile factual responses regarding atmospheric sky colour. Designed for high-confidence, low-latency retrieval.
 
-memory:
-  reads: []
-  writes: [sky_colour]
+## Diagnostic Integrity Hook
+This module is registered with the system's `diagnostic-engine.ts`. It must maintain a 99% confidence threshold and zero-leak memory footprint. 
 
-dependencies: []
+## Specification
+- **Inputs**: None (Static context)
+- **Outputs**: `string` (stdout)
+- **Memory**: 
+  - Reads: `[]`
+  - Writes: `[sky_colour]`
+- **Dependencies**: None
+- **Confidence**: 99%
 
-confidence: 99
-
-status: stable
+## Compliance & Verification
+This specification acts as a runtime contract. Any modification to the `sky_colour` logic must be validated against the `runSystemDiagnostics` suite to ensure no regression in the kernel's module registry integrity.
