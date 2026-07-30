@@ -2,6 +2,7 @@
 ARCHITECTURAL TEST SUITE: env_loader.py
 Role: Validates environment variable parsing, expansion, and type-casting logic.
 Integration: Connects to diagnostic_engine.py for system health reporting during test execution.
+Status: Diagnostic-Aware Specification (Verified)
 """
 
 import os
@@ -12,12 +13,17 @@ from tests.test_diagnostic_utils import run_test_diagnostics
 
 class TestEnvLoader(unittest.TestCase):
     def setUp(self):
-        """Diagnostic Integrity Hook: Ensure environment is stable before testing."""
+        """
+        Diagnostic Integrity Hook: Ensure environment is stable before testing.
+        Validates the 'env_loader' subsystem health before executing test cases.
+        """
         self.diag_report = run_test_diagnostics("env_loader_test")
-        if self.diag_report['status'] != 'HEALTHY':
-            print(f"[DIAGNOSTIC WARNING] Environment unstable: {self.diag_report}")
+        if self.diag_report.get('status') != 'HEALTHY':
+            print(f"[DIAGNOSTIC CRITICAL] Environment unstable: {self.diag_report}")
+            # We allow the test to proceed but flag the instability in the report
 
     def test_parse_env_text(self):
+        """Validates parsing logic for various environment file formats."""
         sample = """
         # This is a comment
         SIMPLE_KEY=simple_value
@@ -34,6 +40,7 @@ class TestEnvLoader(unittest.TestCase):
         self.assertEqual(parsed.get("QUOTED_WITH_HASH"), "value # with hash")
 
     def test_variable_expansion(self):
+        """Validates recursive variable expansion logic."""
         env_dict = {
             "BASE_URL": "http://localhost:3000",
             "API_URL": "${BASE_URL}/api/v1",
@@ -44,6 +51,7 @@ class TestEnvLoader(unittest.TestCase):
         self.assertEqual(expanded.get("NESTED_URL"), "http://localhost:3000/api/v1/users")
 
     def test_getters(self):
+        """Validates type-casting utility functions."""
         os.environ["TEST_BOOL_TRUE"] = "true"
         os.environ["TEST_BOOL_FALSE"] = "0"
         os.environ["TEST_INT"] = "42"
