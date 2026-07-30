@@ -22,7 +22,7 @@ import re
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from env_validator import verify_env_integrity
-from env_diagnostic_utils import log_diagnostic_event
+from env_diagnostic_utils import log_diagnostic_event, perform_env_integrity_check
 
 ENV_FILE = Path(__file__).parent / ".env"
 
@@ -108,6 +108,7 @@ def load_env() -> None:
         
         # Post-load integrity check
         verify_env_integrity()
+        perform_env_integrity_check()
         log_diagnostic_event("ENV_LOADER", "SUCCESS", "Environment loaded and verified.")
     except Exception as e:
         log_diagnostic_event("ENV_LOADER", "FAILURE", str(e))
