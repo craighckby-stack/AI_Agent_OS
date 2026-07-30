@@ -32,9 +32,10 @@ This repository implements a lightweight, modular **Local Agent Kernel**. It is 
   - `memory_persistence`: Verifies read/write access to `memory.json`.
   - `module_registry`: Ensures all `run.sh` scripts are executable.
 
-## System Health & Verification
+## Diagnostic Governance & Fail-Fast Mandate
 - **Diagnostic Integrity Hook**: The kernel utilizes a `runSystemDiagnostics()` hook to verify environment state at runtime. 
 - **Verification Contract**: Any new module must implement a `diagnostic_check.sh` to be considered 'Kernel-Compliant'.
+- **Fail-Fast Policy**: If `runSystemDiagnostics()` returns `CRITICAL_FAILURE`, the kernel will halt execution to prevent state corruption.
 
 ## Kernel Lifecycle & Evolution
 - **Zero-Leak Policy**: All module executions are isolated via subprocesses. No state leakage occurs between the kernel and the module execution environment.
