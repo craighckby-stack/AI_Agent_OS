@@ -149,6 +149,9 @@ To ensure the kernel remains operational, the system utilizes a diagnostic engin
 - **Memory Persistence Validation:** Ensures the Firebase/Git state layers are reachable.
 - **Module Registry Audit:** Verifies that all active modules conform to the current contract schema.
 
+### Diagnostic Integrity Hook
+Every module and service must implement a diagnostic hook that reports to the `DiagnosticEngine`. This ensures that the system can perform a self-audit of its own operational state at any time.
+
 ---
 
 ## 6. Security & Compliance
