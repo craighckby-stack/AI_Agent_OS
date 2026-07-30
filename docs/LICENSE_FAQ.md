@@ -1,3 +1,18 @@
+<!-- 
+==============================================================================
+ARCHITECTURAL SYSTEM HEADER: LICENSE COMPLIANCE & FAQ DOCUMENTATION
+==============================================================================
+Role: License Governance & Compliance Validation
+System Context: This document serves as the source of truth for the PolyForm 
+                Noncommercial License 1.0.0. It is integrated with the 
+                ComplianceValidator utility to enforce the 32-day grace period 
+                logic within the AI_Agent_OS kernel.
+Integrations:
+  - src/utils/compliance-validator.ts: Enforces the 32-day compliance window.
+  - kernel.py: References this document for system-level license checks.
+==============================================================================
+-->
+
 # PolyForm Noncommercial License 1.0.0 - FAQ
 
 This document provides answers to common questions regarding the use of this software under the PolyForm Noncommercial License 1.0.0.
@@ -18,3 +33,6 @@ If you are notified in writing of a violation, you have **32 days** to come into
 
 ### 5. How do I request a commercial license?
 Please reach out to **craighckby-stack** directly via GitHub to discuss commercial licensing terms.
+
+---
+*System Integration Note: Compliance status is monitored via `ComplianceValidator` (see src/utils/compliance-validator.ts).*
