@@ -18,6 +18,9 @@ This module is registered with the system's `diagnostic-engine.ts`. It must main
 - **Integrity Contract**: The module must return a deterministic result for atmospheric queries. Any deviation triggers a `CRITICAL_FAILURE` state in the kernel.
 - **Diagnostic Link**: See `lib/diagnostic-engine.ts` for the implementation of the verification suite.
 
+## Diagnostic Governance
+All modifications to this module MUST be validated against the `runSystemDiagnostics` suite. Any changes to the logic must be documented in the `CHANGELOG.md` and verified by the `DiagnosticEngine` to ensure no regression in the kernel's module registry integrity.
+
 ## Specification
 - **Inputs**: None (Static context)
 - **Outputs**: `string` (stdout)
