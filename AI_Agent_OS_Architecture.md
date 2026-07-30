@@ -234,6 +234,12 @@ status: experimental | stable | deprecated
 
 ---
 
+## 10. System Health & Versioning
+
+All system components now track `SYSTEM_HEALTH_VERSION` to ensure compatibility with the diagnostic suite. The diagnostic engine leverages `diagnostic-utils.ts` to perform pre-flight checks, ensuring that every module is verified against the current architectural specification before execution.
+
+---
+
 ## Benchmark — first testable milestone
 
 ```
