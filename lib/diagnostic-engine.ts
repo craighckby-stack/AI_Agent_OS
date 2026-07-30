@@ -8,12 +8,12 @@
  * critical dependencies are verified before kernel execution cycles.
  */
 
-import { performDeepCheck } from './diagnostic-utils';
+import { performDeepCheck, DiagnosticResult } from './diagnostic-utils';
 
 export interface DiagnosticReport {
   status: 'HEALTHY' | 'CRITICAL_FAILURE' | 'ERROR';
   timestamp: string;
-  checks: Record<string, boolean>;
+  checks: Record<string, DiagnosticResult>;
 }
 
 /**
@@ -26,21 +26,21 @@ export const runSystemDiagnostics = async (): Promise<DiagnosticReport> => {
   console.log("[DIAGNOSTIC] Starting kernel integrity check...");
 
   try {
-    const checks = ['env_loader', 'memory_persistence', 'module_registry'];
-    const results: Record<string, boolean> = {};
+    const checkKeys = ['env_loader', 'memory_persistence', 'module_registry'];
+    const results: Record<string, DiagnosticResult> = {};
 
     // Execute checks in parallel for performance optimization
-    const checkPromises = checks.map(async (check) => {
-      const result = await performDeepCheck(check);
-      return { check, result };
+    const checkPromises = checkKeys.map(async (key) => {
+      const result = await performDeepCheck(key);
+      return { key, result };
     });
 
     const resolvedChecks = await Promise.all(checkPromises);
-    resolvedChecks.forEach(({ check, result }) => {
-      results[check] = result;
+    resolvedChecks.forEach(({ key, result }) => {
+      results[key] = result;
     });
 
-    const isHealthy = Object.values(results).every((val) => val === true);
+    const isHealthy = Object.values(results).every((res) => res.passed === true);
 
     return {
       status: isHealthy ? 'HEALTHY' : 'CRITICAL_FAILURE',
