@@ -6,6 +6,9 @@ Role: Memory Subsystem Specification
 System Context: This document defines the "Memory as Evidence, Not Truth" paradigm
                 used by the Local Agent Kernel. It details the flat-file storage
                 schema, confidence scoring, and TTL/expiry validation.
+Integrations:
+  - kernel.py: Implements the verification logic.
+  - modules/: Source of truth for module execution.
 ==============================================================================
 -->
 
@@ -33,23 +36,17 @@ Memory is persisted in a single, flat JSON file at `memory/local/memory.json`. T
     "result": "The actual output string captured from stdout",
     "confidence": 99,
     "last_verified": "YYYY-MM-DD HH:MM:SS",
-    "dependencies": []
+    "dependencies": [],
+    "version": "1.0.0"
   }
 }
 ```
 
-### Example Entry
+### System Integrity & Evolution
 
-```json
-{
-  "sky_colour": {
-    "result": "The sky is blue during clear daylight.",
-    "confidence": 99,
-    "last_verified": "2026-07-29 05:13:02",
-    "dependencies": []
-  }
-}
-```
+- **Atomic Writes:** The kernel uses atomic file operations to prevent corruption during concurrent access.
+- **Schema Evolution:** The `version` field allows the kernel to perform migrations if the memory schema changes in future iterations.
+- **Zero-Leak Sandboxing:** Memory entries are strictly scoped to the module name to prevent cross-module pollution.
 
 ## ⚡ Performance Impact
 
