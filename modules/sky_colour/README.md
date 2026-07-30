@@ -27,7 +27,7 @@ All modifications to this module MUST be validated against the `runSystemDiagnos
 - **Memory**: 
   - Reads: `[]`
   - Writes: `[sky_colour]`
-- **Dependencies**: None
+- **Dependencies**: `modules/sky_colour/index.ts`
 - **Confidence**: 99%
 
 ## Compliance & Verification
