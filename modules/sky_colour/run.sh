@@ -18,11 +18,13 @@ DIAGNOSTIC_PATH="$(dirname "$0")/diagnostic_check.sh"
 execute_module_logic() {
     # Core Domain Logic
     # Returns the current atmospheric state based on system parameters
+    echo "[INFO] Executing sky_colour atmospheric analysis..."
     echo "The sky is blue during clear daylight."
     return 0
 }
 
 # Main Execution Gate
+# Implements the 'Fail-Fast' architectural pattern
 if [ -f "$DIAGNOSTIC_PATH" ]; then
     source "$DIAGNOSTIC_PATH"
     
@@ -37,4 +39,12 @@ fi
 
 # Execute and capture status
 execute_module_logic
-exit $?
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 0 ]; then
+    echo "[SUCCESS] Module sky_colour execution completed successfully."
+else
+    echo "[ERROR] Module sky_colour execution failed with code $EXIT_CODE."
+fi
+
+exit $EXIT_CODE
