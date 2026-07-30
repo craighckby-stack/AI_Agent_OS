@@ -77,3 +77,14 @@ ROUTING_TABLE = {
 ## 🛡️ Compliance & Verification
 
 All routing operations MUST be validated against the `DiagnosticReport` schema defined in `lib/diagnostic-engine.ts`. Any deviation from the defined fallback chain triggers an automatic kernel re-initialization sequence.
+
+### Programmatic Contract
+```typescript
+import { runSystemDiagnostics } from './lib/diagnostic-engine';
+
+// Verify routing subsystem health
+const report = await runSystemDiagnostics();
+if (report.status !== 'HEALTHY') {
+  console.error("Routing subsystem integrity breach detected.");
+}
+```
