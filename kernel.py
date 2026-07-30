@@ -19,6 +19,7 @@ from typing import Dict, Any, Tuple, Optional
 from env_loader import load_env
 from llm_router import route_via_llm
 from diagnostic_engine import run_system_diagnostics
+from lib.kernel_context import KernelContext
 
 # Initialize environment and diagnostic hooks
 load_env()
@@ -88,6 +89,8 @@ def run(request: str) -> None:
         print(f"[CRITICAL] Kernel integrity failure: {diag_report.get('status')}")
         return
 
+    # Initialize Kernel Context
+    ctx = KernelContext(request)
     start = time.monotonic()
     state = KernelState()
     memory = state.load_memory()
