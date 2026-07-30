@@ -10,6 +10,7 @@ System Context: This document serves as the source of truth for the PolyForm
 Integrations:
   - src/utils/compliance-validator.ts: Enforces the 32-day compliance window.
   - kernel.py: References this document for system-level license checks.
+  - docs/COMPLIANCE_MANIFEST.md: Detailed audit trail of license state.
 ==============================================================================
 -->
 
@@ -33,6 +34,13 @@ If you are notified in writing of a violation, you have **32 days** to come into
 
 ### 5. How do I request a commercial license?
 Please reach out to **craighckby-stack** directly via GitHub to discuss commercial licensing terms.
+
+## Compliance Verification
+
+System integrity is maintained via the `ComplianceValidator` module. 
+- **Grace Period:** 32 Days (Hard-coded in kernel).
+- **Audit Trail:** See `docs/COMPLIANCE_MANIFEST.md` for current validation logs.
+- **Verification:** Run `python diagnostic_engine.py --verify-license` to check current status.
 
 ---
 *System Integration Note: Compliance status is monitored via `ComplianceValidator` (see src/utils/compliance-validator.ts).*
