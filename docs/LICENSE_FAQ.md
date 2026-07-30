@@ -11,6 +11,7 @@ Integrations:
   - src/utils/compliance-validator.ts: Enforces the 32-day compliance window.
   - kernel.py: References this document for system-level license checks.
   - docs/COMPLIANCE_MANIFEST.md: Detailed audit trail of license state.
+  - docs/DIAGNOSTIC_INTEGRITY_HOOK.md: System health verification protocol.
 ==============================================================================
 -->
 
@@ -41,6 +42,9 @@ System integrity is maintained via the `ComplianceValidator` module.
 - **Grace Period:** 32 Days (Hard-coded in kernel).
 - **Audit Trail:** See `docs/COMPLIANCE_MANIFEST.md` for current validation logs.
 - **Verification:** Run `python diagnostic_engine.py --verify-license` to check current status.
+
+## System Health & Verification
+This document is subject to the `Diagnostic Integrity Hook`. Any modification to the license terms or grace period constants MUST be validated against the `ComplianceValidator` test suite.
 
 ---
 *System Integration Note: Compliance status is monitored via `ComplianceValidator` (see src/utils/compliance-validator.ts).*
