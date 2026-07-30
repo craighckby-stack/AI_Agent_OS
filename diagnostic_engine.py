@@ -8,22 +8,25 @@ critical dependencies are verified before kernel execution cycles.
 """
 
 import datetime
-import json
 import logging
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
+from diagnostic_registry import REGISTERED_CHECKS
 
 # Configure diagnostic logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DiagnosticEngine")
 
 def perform_deep_check(check_type: str) -> bool:
-    """Simulates deep integrity checks for system components."""
+    """Simulates deep integrity checks for system components via registry."""
     try:
+        if check_type in REGISTERED_CHECKS:
+            return REGISTERED_CHECKS[check_type]()
+        
+        # Fallback legacy checks
         if check_type == 'env_loader':
             return True
         if check_type == 'memory_persistence':
-            # Validate existence of memory directory
             return (Path(__file__).parent / "memory").exists() or True
         if check_type == 'module_registry':
             return True
@@ -39,7 +42,7 @@ def run_system_diagnostics() -> Dict[str, Any]:
     """
     logger.info("[DIAGNOSTIC] Starting kernel integrity check...")
     try:
-        checks = ['env_loader', 'memory_persistence', 'module_registry']
+        checks = ['env_loader', 'memory_persistence', 'module_registry'] + list(REGISTERED_CHECKS.keys())
         results = {check: perform_deep_check(check) for check in checks}
         is_healthy = all(results.values())
         
