@@ -3,68 +3,113 @@
 ARCHITECTURAL SYSTEM HEADER: EVIDENCE-BASED MEMORY SPECIFICATION
 ==============================================================================
 Role: Memory Subsystem Specification & Governance Controller
+System Version: v1.0.0-DIAGNOSTIC-AWARE
 System Context: This document defines the "Memory as Evidence, Not Truth" paradigm
                 used by the Local Agent Kernel. It details the flat-file storage
-                schema, confidence scoring, and TTL/expiry validation.
+                schema, confidence decay scoring, TTL validation, dynamic hash auditing,
+                and atomic state write operations.
 Integrations:
-  - kernel.py: Implements the verification logic.
+  - kernel.py: Implements the evidence verification logic.
   - modules/: Source of truth for module execution.
-  - lib/memory-validator.ts: Compliance verification utility.
-  - lib/diagnostic-engine.ts: System health monitoring (Diagnostic Integrity Hook).
+  - src/utils/memory_verifier.py: Core evidential memory verification engine.
+  - diagnostic_engine.py: System health monitoring and memory persistence probes.
 ==============================================================================
 -->
 
 # Memory Subsystem Specification: Evidence-Based Verification
 
-The Local Agent Kernel implements a flat-file memory subsystem designed to minimize redundant execution, reduce LLM API costs, and guarantee high-speed local responses.
+The Local Agent Kernel implements a zero-dependency, flat-file memory subsystem designed to minimize redundant module execution, eliminate LLM API costs, and guarantee high-speed local response times. 
+
+Unlike traditional Key-Value caches, this system treats memory as **Evidential Assertions**—probabilistic representations of prior state execution that must pass continuous validation gates before being trusted by the kernel.
+
+---
 
 ## 🧠 Memory as Evidence, Not Truth
 
-In traditional caching, a key-value hit is returned blindly. The Local Agent Kernel treats memory as *evidence* that must clear a strict verification bar before being trusted:
+In traditional caching systems, a key-value hit is returned blindly based on key matching. The Local Agent Kernel treats stored memory as *evidence* that must clear a strict verification bar before being accepted as execution context:
 
-1. **Confidence Threshold:** The stored confidence score must be `>= 90`. If a previous run resulted in low confidence, the kernel will bypass memory and re-execute the module.
-2. **Temporal Validity (TTL):** For volatile modules, the kernel checks the `expiry` timestamp. If the current time exceeds the expiry, the entry is treated as stale and re-executed.
-3. **Dependency Integrity:** If a module depends on external files or other modules, the kernel verifies that those dependencies have not changed since the last execution.
+1. **Confidence Threshold & Decay:** The stored confidence score must be `>= 90%`. To prevent stale facts from accumulating, memory entries undergo dynamic exponential decay over time based on an configurable half-life model:
+   $$
+   C(t) = C_0 \times 0.5^{\left(\frac{\Delta t}{\tau}\right)}
+   $$
+   Where $C_0$ is the initial verification score, $\Delta t$ is elapsed time, and $\tau$ is the entry's half-life parameter.
 
-## 📁 Flat-File JSON Schema
+2. **Temporal Validity (TTL):** For time-sensitive or volatile modules, the kernel evaluates the `expiry` unix timestamp. If the current epoch time exceeds `expiry`, the entry is flagged as stale, purged, and re-executed.
 
-Memory is persisted in a single, flat JSON file at `memory/local/memory.json`. This ensures zero external database dependencies and allows the kernel to run seamlessly in Termux or Colab.
+3. **Cryptographic Dependency Integrity:** If a module depends on external files, environment variables, or sibling modules, the kernel computes and compares SHA-256 digests (`dependency_hash`). If any source dependency changes, the cache entry is invalidated instantly.
 
-### Schema Definition
+4. **Zero-Leak Module Sandboxing:** Scope parameters prevent cross-module memory bleed. Every entry is isolated to its owning module identifier and tenant namespace.
+
+---
+
+## 📁 Tiered Storage Architecture & JSON Schema
+
+To maximize performance while preserving absolute local portability (Termux, Colab, On-Device), memory persistence is organized in a three-tier hierarchy:
+
+- **L1 In-Memory Cache:** Ephemeral dict lookup in kernel memory (~0.05ms).
+- **L2 Flat-File JSON Persistence:** Persistent store located at `memory/local/memory.json` (~1-5ms).
+- **L3 Verification Archive:** Diagnostic historical log located at `memory/local/archive.json` for telemetry auditing.
+
+### Extended Schema Definition
 
 ```json
 {
   "module_name": {
-    "result": "The actual output string captured from stdout",
-    "confidence": 99,
-    "last_verified": "YYYY-MM-DD HH:MM:SS",
-    "dependencies": [],
-    "version": "1.0.0"
+    "result": "The actual output string or payload captured from execution",
+    "confidence": 99.0,
+    "decay_half_life_seconds": 86400,
+    "last_verified": "2026-03-30T12:00:00Z",
+    "timestamp": 1774872000.0,
+    "expiry": 1774958400.0,
+    "dependency_hash": "a3f8b910e5218d6c71c1b12d7d8e90ff8a90123456789abcdef0123456789abc",
+    "dependencies": ["modules/scanner.py", "config/rules.json"],
+    "version": "1.0.0-DIAGNOSTIC-AWARE"
   }
 }
 ```
 
-### System Integrity & Evolution
+### System Integrity & Atomic Evolution
 
-- **Atomic Writes:** The kernel uses atomic file operations to prevent corruption during concurrent access.
-- **Schema Evolution:** The `version` field allows the kernel to perform migrations if the memory schema changes in future iterations.
-- **Zero-Leak Sandboxing:** Memory entries are strictly scoped to the module name to prevent cross-module pollution.
+- **Atomic Write Protocol:** To avoid file corruption during concurrent process execution or ungraceful shutdown, the kernel writes memory updates to a temporary snapshot file (`memory.json.tmp`) and executes an atomic POSIX file rename (`os.replace`).
+- **Schema Version Migration:** The `version` metadata field guarantees backward compatibility. Older memory files are updated on-the-fly during boot diagnostic runs.
+- **Zero-Leak Isolation:** Module entries are key-namespaced (`tenant_id:module_name`) preventing cross-agent data exposure.
 
-## ⚡ Performance Impact
+---
 
-- **Memory Hit:** ~1-5ms (Close to instant, zero network overhead, zero API costs).
-- **Memory Miss:** ~500ms - 3000ms (Requires LLM routing and subprocess execution).
+## ⚡ Performance Impact Metrics
 
-## 🛡️ Compliance & Verification
+| Execution Path | Speed Benchmark | Resource Overhead | Network Cost |
+| :--- | :--- | :--- | :--- |
+| **L1 Cache Hit** | `~0.05ms` | Near Zero CPU / Minimal RAM | $0.00 |
+| **L2 Memory Hit** | `~1 - 5ms` | Local Disk I/O | $0.00 |
+| **Memory Miss / Subprocess Execution** | `~500ms - 3000ms` | LLM API Query & Module Run | Standard Token Cost |
 
-All memory operations are subject to the `MemoryValidator` utility. This ensures that the memory state remains consistent with the system's diagnostic manifest.
+---
 
-- **Integrity Check:** Run `MemoryValidator.verify()` to ensure the `memory.json` file adheres to the current schema version and confidence requirements.
+## 🛡️ Compliance & Verification Engine
+
+All memory operations are governed programmatically by the `MemoryVerifier` utility located at `src/utils/memory_verifier.py`.
+
+```python
+from src.utils.memory_verifier import MemoryVerifier
+
+# Initialize Verifier
+verifier = MemoryVerifier()
+
+# Verify full memory store integrity
+report = verifier.verify_all()
+print(f"Store Status: {report['status']}, Valid Entries: {report['valid_entries']}/{report['total_entries']}")
+```
+
+- **Automated Audit Routine:** Executed during system bootstrap and kernel idle cycles.
+- **Integrity Guarantee:** Entries failing decay, hash, or expiry verification are automatically isolated and marked for re-execution.
+
+---
 
 ## 🩺 System Health & Verification (Diagnostic Integrity Hook)
 
-This specification is linked to the system's diagnostic engine. Any deviation in memory schema or integrity triggers a `CRITICAL_FAILURE` report via the `runSystemDiagnostics` hook.
+This specification is bound directly to the system's core diagnostic engine (`diagnostic_engine.py`). Any structural deviation in `memory/local/memory.json` triggers a `CRITICAL_FAILURE` diagnostic report.
 
-- **Verification Hook:** `lib/diagnostic-engine.ts` performs a periodic `memory_persistence` check against this specification to ensure the `memory/` directory remains accessible and valid.
-- **Diagnostic Contract:** The memory subsystem must return a `DiagnosticReport` status of `HEALTHY` when queried by the engine, or the kernel will initiate a self-healing sequence to re-initialize the memory store.
-- **Fail-Fast Mandate:** If `MemoryValidator.verify()` returns `false`, the system will halt execution of dependent modules to prevent propagation of corrupted state.
+- **Diagnostic Probe:** The `memory_persistence` health probe executes `verifier.verify_all()` during every deep check.
+- **Self-Healing Capability:** If `memory.json` is corrupted or malformed, the memory verifier isolates the malformed entry and initializes a pristine structure without crashing the kernel execution loop.
+- **Fail-Fast Mandate:** If an essential module returns an unverified memory state below `90%` confidence, execution bypasses cache and enforces fresh, sandbox-validated execution.
