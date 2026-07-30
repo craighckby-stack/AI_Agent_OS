@@ -20,8 +20,13 @@ To ensure system stability, the kernel utilizes an integrated diagnostic engine 
 ### Diagnostic Integrity Hook
 ```typescript
 import { runSystemDiagnostics } from './lib/diagnostic-engine';
+
+// Execute diagnostic suite before kernel initialization
 const report = await runSystemDiagnostics();
-if (report.status !== 'HEALTHY') throw new Error("Kernel Integrity Compromised");
+if (report.status !== 'HEALTHY') {
+  console.error("[CRITICAL] Kernel Integrity Compromised:", report.checks);
+  throw new Error("Kernel Integrity Compromised");
+}
 ```
 
 ## System Overview
