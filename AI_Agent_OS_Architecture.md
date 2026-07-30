@@ -152,6 +152,9 @@ To ensure the kernel remains operational, the system utilizes a diagnostic engin
 ### Diagnostic Integrity Hook
 Every module and service must implement a diagnostic hook that reports to the `DiagnosticEngine`. This ensures that the system can perform a self-audit of its own operational state at any time. All modules must expose a `run_diagnostics()` method to satisfy the `Diagnostic-Aware Specification`. This pattern ensures that the system remains observable and verifiable at the kernel level.
 
+### Diagnostic Governance
+All system components must adhere to the 'Fail-Fast' architectural principle. If a `run_diagnostics()` call returns a non-healthy status, the kernel must halt execution to prevent state corruption. Diagnostic reports are standardized to include timestamps and granular check-results to facilitate rapid debugging.
+
 ---
 
 ## 6. Security & Compliance
