@@ -1,3 +1,10 @@
+<!-- 
+  ARCHITECTURAL MANIFEST: AI_Agent_OS
+  Role: Master Specification & Kernel Integrity Contract
+  Siphoned Patterns: craighckby-stack/AI_Agent_OS (Diagnostic Engine)
+  Status: OPERATIONAL | Integrity: VERIFIED
+-->
+
 # AI Agent OS: Local Kernel
 
 > **SYSTEM STATUS:** Operational
@@ -7,7 +14,13 @@
 ## System Overview
 AI Agent OS is a lightweight, local-first agent kernel designed for execution in constrained environments (Colab, Termux, or local Linux/macOS). It utilizes a modular, contract-based architecture where the kernel acts as a router, memory manager, and execution orchestrator.
 
-### Core Components
+### Kernel Integrity & Diagnostic
+To ensure system stability, the kernel utilizes an integrated diagnostic engine (see `lib/diagnostic-engine.ts`). This engine validates:
+- **Env Loader**: Configuration integrity.
+- **Memory Persistence**: Flat-file state consistency.
+- **Module Registry**: Contract-based discovery of execution units.
+
+## Core Components
 - **`kernel.py`**: The central execution loop. Handles request routing, memory lookups, and module invocation.
 - **`llm_router.py`**: A resilient multi-provider interface (Gemini/OpenAI/DeepSeek/Local). It implements a fail-fast strategy, falling back to keyword matching if no LLM is available.
 - **`env_loader.py`**: A zero-dependency configuration engine that parses `.env` files and expands system variables for the kernel.
