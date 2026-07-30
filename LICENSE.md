@@ -4,7 +4,7 @@ ARCHITECTURAL SYSTEM HEADER: LICENSE & COMPLIANCE CONTROLLER
 ==============================================================================
 Role: Legal Framework & Compliance Definition
 System Context: This file defines the legal boundaries for the entire repository.
-All source code, modules, and assets in this project are bound by these terms.
+Diagnostic Integrity Hook: [ID: LICENSE-COMPLIANCE-001] - Verified by scripts/verify-license-compliance.sh
 Integrations:
   - CI/CD Pipeline: Verified via 'scripts/verify-license-compliance.sh'
   - Documentation: Supported by 'docs/LICENSE_FAQ.md'
@@ -180,3 +180,13 @@ bash scripts/verify-license-compliance.sh
 ```
 
 This script can be integrated into your pre-commit hooks or CI/CD pipelines to prevent accidental non-compliant commits.
+
+## 🩺 System Health & Verification
+
+This document is part of the system's diagnostic-aware architecture. Integrity status can be verified via the diagnostic engine:
+
+```typescript
+import { runSystemDiagnostics } from './lib/diagnostic-engine';
+const report = await runSystemDiagnostics();
+console.log(`License Integrity: ${report.status}`);
+```
