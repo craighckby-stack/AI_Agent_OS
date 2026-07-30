@@ -10,6 +10,7 @@ Integrations:
   - kernel.py: Implements the verification logic.
   - modules/: Source of truth for module execution.
   - lib/memory-validator.ts: Compliance verification utility.
+  - lib/diagnostic-engine.ts: System health monitoring.
 ==============================================================================
 -->
 
@@ -56,6 +57,12 @@ Memory is persisted in a single, flat JSON file at `memory/local/memory.json`. T
 
 ## 🛡️ Compliance & Verification
 
-All memory operations are subject to the `MemoryValidator` utility. This ensures that the memory state remains consistent with the system's diagnostic manifest. 
+All memory operations are subject to the `MemoryValidator` utility. This ensures that the memory state remains consistent with the system's diagnostic manifest.
 
 - **Integrity Check:** Run `MemoryValidator.verify()` to ensure the `memory.json` file adheres to the current schema version and confidence requirements.
+
+## 🩺 System Health & Verification (Diagnostic Integrity Hook)
+
+This specification is linked to the system's diagnostic engine. Any deviation in memory schema or integrity triggers a `CRITICAL_FAILURE` report via the `runSystemDiagnostics` hook. 
+
+- **Verification Hook:** `lib/diagnostic-engine.ts` performs a periodic `memory_persistence` check against this specification to ensure the `memory/` directory remains accessible and valid.
