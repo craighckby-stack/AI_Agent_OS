@@ -46,5 +46,10 @@ System integrity is maintained via the `ComplianceValidator` module.
 ## System Health & Verification
 This document is subject to the `Diagnostic Integrity Hook`. Any modification to the license terms or grace period constants MUST be validated against the `ComplianceValidator` test suite.
 
+### Integrity Hook Status
+- **Diagnostic Protocol:** `v1.0.0-stable`
+- **Validation Link:** `src/utils/compliance-validator.ts`
+- **Verification Command:** `npm run verify:compliance`
+
 ---
 *System Integration Note: Compliance status is monitored via `ComplianceValidator` (see src/utils/compliance-validator.ts).*
