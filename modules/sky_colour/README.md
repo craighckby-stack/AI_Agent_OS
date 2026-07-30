@@ -13,6 +13,11 @@ Provides stable, non-volatile factual responses regarding atmospheric sky colour
 ## Diagnostic Integrity Hook
 This module is registered with the system's `diagnostic-engine.ts`. It must maintain a 99% confidence threshold and zero-leak memory footprint. 
 
+## System Health & Verification
+- **Verification Protocol**: All calls to `sky_colour` must pass the `runSystemDiagnostics` pre-flight check.
+- **Integrity Contract**: The module must return a deterministic result for atmospheric queries. Any deviation triggers a `CRITICAL_FAILURE` state in the kernel.
+- **Diagnostic Link**: See `lib/diagnostic-engine.ts` for the implementation of the verification suite.
+
 ## Specification
 - **Inputs**: None (Static context)
 - **Outputs**: `string` (stdout)
