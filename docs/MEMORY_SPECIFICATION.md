@@ -63,6 +63,7 @@ All memory operations are subject to the `MemoryValidator` utility. This ensures
 
 ## 🩺 System Health & Verification (Diagnostic Integrity Hook)
 
-This specification is linked to the system's diagnostic engine. Any deviation in memory schema or integrity triggers a `CRITICAL_FAILURE` report via the `runSystemDiagnostics` hook. 
+This specification is linked to the system's diagnostic engine. Any deviation in memory schema or integrity triggers a `CRITICAL_FAILURE` report via the `runSystemDiagnostics` hook.
 
 - **Verification Hook:** `lib/diagnostic-engine.ts` performs a periodic `memory_persistence` check against this specification to ensure the `memory/` directory remains accessible and valid.
+- **Diagnostic Contract:** The memory subsystem must return a `DiagnosticReport` status of `HEALTHY` when queried by the engine, or the kernel will initiate a self-healing sequence to re-initialize the memory store.
