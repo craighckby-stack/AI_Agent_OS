@@ -52,7 +52,7 @@ This document is subject to the `Diagnostic Integrity Hook`. Any modification to
 - **Verification Command:** `npm run verify:compliance`
 
 ## Diagnostic Governance
-All modifications to this document must trigger the `ComplianceValidator` integrity check. This ensures that the legal framework remains synchronized with the system's runtime health and diagnostic monitoring capabilities.
+All modifications to this document must trigger a re-validation of the `ComplianceValidator` state. Failure to pass the integrity hook will result in a system-wide lock on kernel execution cycles.
 
 ---
 *System Integration Note: Compliance status is monitored via `ComplianceValidator` (see src/utils/compliance-validator.ts).*
