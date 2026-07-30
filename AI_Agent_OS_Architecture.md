@@ -55,7 +55,7 @@ system changes — it should never describe aspirational behavior.
   credentials during testing.
 - Full-history blob scanner — has identified exposed tokens across 56 blobs
   in the scaffold repo.
-- Diagnostic Engine (lib/diagnostic-engine.ts) — kernel integrity validation.
+- Diagnostic Engine (lib/diagnostic-engine.ts) — kernel integrity validation with Diagnostic Integrity Hooks.
 
 Known open problems (not yet solved, listed here so they don't get silently
 promoted to "done"):
@@ -150,7 +150,7 @@ To ensure the kernel remains operational, the system utilizes a diagnostic engin
 - **Module Registry Audit:** Verifies that all active modules conform to the current contract schema.
 
 ### Diagnostic Integrity Hook
-Every module and service must implement a diagnostic hook that reports to the `DiagnosticEngine`. This ensures that the system can perform a self-audit of its own operational state at any time. All modules must expose a `run_diagnostics()` method to satisfy the `Diagnostic-Aware Specification`.
+Every module and service must implement a diagnostic hook that reports to the `DiagnosticEngine`. This ensures that the system can perform a self-audit of its own operational state at any time. All modules must expose a `run_diagnostics()` method to satisfy the `Diagnostic-Aware Specification`. This pattern ensures that the system remains observable and verifiable at the kernel level.
 
 ---
 
@@ -176,7 +176,7 @@ Module_Name/
 ├── tests/
 ├── memory/
 ├── logs/
-└── diagnostic_hook.ts (Required)
+└── diagnostic_hook.ts (Required: Diagnostic-Aware Specification)
 ```
 
 ### Contract schema
