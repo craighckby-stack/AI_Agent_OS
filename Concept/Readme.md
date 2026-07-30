@@ -2,6 +2,7 @@
   AI AGENT OS: MASTER ARCHITECTURE SPECIFICATION
   Role: Defines the kernel lifecycle, diagnostic protocols, and module integration standards.
   Connected to: src/lib/diagnostic-engine.ts, env_loader.py, kernel.py
+  Status: DIAGNOSTIC-AWARE
 -->
 
 # AI Agent OS: Core Architecture & Kernel Specification
@@ -30,6 +31,10 @@ This repository implements a lightweight, modular **Local Agent Kernel**. It is 
   - `env_loader`: Validates variable expansion.
   - `memory_persistence`: Verifies read/write access to `memory.json`.
   - `module_registry`: Ensures all `run.sh` scripts are executable.
+
+## System Health & Verification
+- **Diagnostic Integrity Hook**: The kernel utilizes a `runSystemDiagnostics()` hook to verify environment state at runtime. 
+- **Verification Contract**: Any new module must implement a `diagnostic_check.sh` to be considered 'Kernel-Compliant'.
 
 ## Kernel Lifecycle & Evolution
 - **Zero-Leak Policy**: All module executions are isolated via subprocesses. No state leakage occurs between the kernel and the module execution environment.
