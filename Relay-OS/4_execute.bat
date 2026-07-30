@@ -1,2 +1,2 @@
 @echo off
-echo "[4_execute.bat] Default cleanup..." > workspace/cleanup.log
+echo "[4_execute.bat] Cleaning up..." > workspace/cleanup.log
