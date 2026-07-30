@@ -1,16 +1,16 @@
 """
-ENVIRONMENT VALIDATION SCHEMA
-Role: Defines the expected structure and integrity constraints for system environment variables.
-Integration: Used by env_diagnostic_utils.py for deep integrity checks.
+ARCHITECTURAL SCHEMA: ENV VALIDATION
+Role: Defines validation rules for environment variables.
 """
+from typing import List
 
-from typing import Any, Dict
+REQUIRED_KEYS = ["GEMINI_API_KEY", "OPENAI_API_KEY", "SYSTEM_MODE"]
 
-def validate_env_schema(env_data: Dict[str, Any]) -> bool:
-    """
-    Validates the presence and integrity of critical environment keys.
-    Add specific schema requirements here to ensure system stability.
-    """
-    # Example: Ensure critical keys exist
-    required_keys = ['KERNEL_VERSION', 'MEMORY_PATH']
-    return all(key in env_data for key in required_keys)
+def get_required_keys() -> List[str]:
+    return REQUIRED_KEYS
+
+def validate_key_format(key: str, value: str) -> bool:
+    """Validates specific format requirements for environment keys."""
+    if key == "SYSTEM_MODE":
+        return value in ["PRODUCTION", "DEVELOPMENT", "TEST"]
+    return len(value) > 0
