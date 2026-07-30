@@ -19,6 +19,7 @@ class TestEnvLoader(unittest.TestCase):
         """
         self.diag_report = run_test_diagnostics("env_loader_test")
         if self.diag_report.get('status') != 'HEALTHY':
+            # Log failure but allow test suite to proceed for diagnostic visibility
             print(f"[DIAGNOSTIC CRITICAL] Environment unstable: {self.diag_report}")
 
     def test_parse_env_text(self):
