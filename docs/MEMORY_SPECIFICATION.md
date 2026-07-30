@@ -10,7 +10,7 @@ Integrations:
   - kernel.py: Implements the verification logic.
   - modules/: Source of truth for module execution.
   - lib/memory-validator.ts: Compliance verification utility.
-  - lib/diagnostic-engine.ts: System health monitoring.
+  - lib/diagnostic-engine.ts: System health monitoring (Diagnostic Integrity Hook).
 ==============================================================================
 -->
 
@@ -67,3 +67,4 @@ This specification is linked to the system's diagnostic engine. Any deviation in
 
 - **Verification Hook:** `lib/diagnostic-engine.ts` performs a periodic `memory_persistence` check against this specification to ensure the `memory/` directory remains accessible and valid.
 - **Diagnostic Contract:** The memory subsystem must return a `DiagnosticReport` status of `HEALTHY` when queried by the engine, or the kernel will initiate a self-healing sequence to re-initialize the memory store.
+- **Fail-Fast Mandate:** If `MemoryValidator.verify()` returns `false`, the system will halt execution of dependent modules to prevent propagation of corrupted state.
