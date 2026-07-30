@@ -1,14 +1,22 @@
 """
-Unit tests for the evolved env_loader.py.
+ARCHITECTURAL TEST SUITE: env_loader.py
+Role: Validates environment variable parsing, expansion, and type-casting logic.
+Integration: Connects to diagnostic_engine.py for system health reporting during test execution.
 """
 
 import os
 import unittest
 from pathlib import Path
-
 from env_loader import parse_env_text, expand_variables, get_bool, get_int, get_list
+from tests.test_diagnostic_utils import run_test_diagnostics
 
 class TestEnvLoader(unittest.TestCase):
+    def setUp(self):
+        """Diagnostic Integrity Hook: Ensure environment is stable before testing."""
+        self.diag_report = run_test_diagnostics("env_loader_test")
+        if self.diag_report['status'] != 'HEALTHY':
+            print(f"[DIAGNOSTIC WARNING] Environment unstable: {self.diag_report}")
+
     def test_parse_env_text(self):
         sample = """
         # This is a comment
