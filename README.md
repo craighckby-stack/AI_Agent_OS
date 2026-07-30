@@ -11,14 +11,21 @@
 > **CONTROLLER:** DARLEK CANN
 > **ARCHITECTURAL MANDATE:** Zero-Cloud Dependency, Flat-File Memory, Multi-Provider LLM Fallback.
 
-## System Overview
-AI Agent OS is a lightweight, local-first agent kernel designed for execution in constrained environments (Colab, Termux, or local Linux/macOS). It utilizes a modular, contract-based architecture where the kernel acts as a router, memory manager, and execution orchestrator.
-
-### Kernel Integrity & Diagnostic
+## System Health & Verification
 To ensure system stability, the kernel utilizes an integrated diagnostic engine (see `lib/diagnostic-engine.ts`). This engine validates:
 - **Env Loader**: Configuration integrity.
 - **Memory Persistence**: Flat-file state consistency.
 - **Module Registry**: Contract-based discovery of execution units.
+
+### Diagnostic Integrity Hook
+```typescript
+import { runSystemDiagnostics } from './lib/diagnostic-engine';
+const report = await runSystemDiagnostics();
+if (report.status !== 'HEALTHY') throw new Error("Kernel Integrity Compromised");
+```
+
+## System Overview
+AI Agent OS is a lightweight, local-first agent kernel designed for execution in constrained environments (Colab, Termux, or local Linux/macOS). It utilizes a modular, contract-based architecture where the kernel acts as a router, memory manager, and execution orchestrator.
 
 ## Core Components
 - **`kernel.py`**: The central execution loop. Handles request routing, memory lookups, and module invocation.
