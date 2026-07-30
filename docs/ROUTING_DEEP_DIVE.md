@@ -2,16 +2,16 @@
 ==============================================================================
 ARCHITECTURAL SYSTEM HEADER: LLM ROUTING & FALLBACK CHAIN DEEP DIVE
 ==============================================================================
-Role: Routing Subsystem Specification
+Role: Routing Subsystem Specification & Governance Controller
 System Context: This document details the multi-provider LLM fallback chain
                 and keyword routing table used by the Local Agent Kernel.
-                Integrates with: kernel.py, llm_router.py, env_loader.py
+                Integrates with: kernel.py, llm_router.py, env_loader.py, RoutingValidator
 ==============================================================================
 -->
 
 # Routing Subsystem: Multi-Provider Fallback Chain
 
-The Local Agent Kernel features a resilient routing layer that guarantees request resolution even under severe network degradation or API key exhaustion. 
+The Local Agent Kernel features a resilient routing layer that guarantees request resolution even under severe network degradation or API key exhaustion.
 
 ## ⛓️ The Fallback Chain
 
@@ -71,3 +71,7 @@ ROUTING_TABLE = {
 - **Environment Resilience:** The system utilizes a 5-pass iterative variable expansion engine (`expand_variables`) to resolve nested environment dependencies before routing begins.
 - **Zero-Leak Sandboxing:** Module execution is isolated via `subprocess.run` with captured output, ensuring that module-level failures do not propagate to the kernel core.
 - **Memory-as-Evidence:** Routing results are cached in `memory.json` with a 90% confidence threshold requirement, preventing stale or low-quality data from polluting the execution flow.
+
+## 🛡️ Compliance & Verification
+
+The routing subsystem is subject to continuous integrity verification. The `RoutingValidator` utility (see `src/lib/routing-validator.ts`) performs runtime checks against the `ROUTING_TABLE` and fallback chain availability to ensure system compliance with the defined architectural manifest.
