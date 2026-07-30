@@ -150,7 +150,7 @@ To ensure the kernel remains operational, the system utilizes a diagnostic engin
 - **Module Registry Audit:** Verifies that all active modules conform to the current contract schema.
 
 ### Diagnostic Integrity Hook
-Every module and service must implement a diagnostic hook that reports to the `DiagnosticEngine`. This ensures that the system can perform a self-audit of its own operational state at any time.
+Every module and service must implement a diagnostic hook that reports to the `DiagnosticEngine`. This ensures that the system can perform a self-audit of its own operational state at any time. All modules must expose a `run_diagnostics()` method to satisfy the `Diagnostic-Aware Specification`.
 
 ---
 
@@ -175,7 +175,8 @@ Module_Name/
 ├── src/
 ├── tests/
 ├── memory/
-└── logs/
+├── logs/
+└── diagnostic_hook.ts (Required)
 ```
 
 ### Contract schema
