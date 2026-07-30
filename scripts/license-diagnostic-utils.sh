@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# LICENSE DIAGNOSTIC UTILITY
-# Role: Provides standardized logging and diagnostic hooks for compliance scripts.
+# LICENSE DIAGNOSTIC UTILITIES
+# Role: Standardized reporting and diagnostic hooks for compliance scripts.
 # ==============================================================================
 
 log_diagnostic() {
@@ -13,5 +13,5 @@ report_success() {
 }
 
 report_failure() {
-    echo "[CRITICAL_FAILURE] $(date -u +"%Y-%m-%dT%H:%M:%SZ"): $1" >&2
+    echo "[FAILURE] $(date -u +"%Y-%m-%dT%H:%M:%SZ"): $1" >&2
 }
