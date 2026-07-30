@@ -21,6 +21,10 @@ from llm_router import route_via_llm
 from diagnostic_engine import run_system_diagnostics
 from lib.kernel_context import KernelContext
 
+# VERIFICATION_REGISTRY: System integrity contract
+SYSTEM_HEALTH_VERSION = "1.0.0"
+PROTOCOL_VERSION = "2024.10.27"
+
 # Initialize environment and diagnostic hooks
 load_env()
 
@@ -64,6 +68,16 @@ class KernelState:
         MEMORY_FILE.parent.mkdir(parents=True, exist_ok=True)
         MEMORY_FILE.write_text(json.dumps(memory, indent=2))
 
+class KernelLifecycle:
+    """Manages the execution lifecycle and diagnostic gatekeeping."""
+    @staticmethod
+    def verify_integrity() -> bool:
+        diag_report = run_system_diagnostics()
+        if diag_report.get('status') != 'HEALTHY':
+            print(f"[CRITICAL] Kernel integrity failure: {diag_report.get('status')}")
+            return False
+        return True
+
 def route_request(request: str, registry: Dict[str, Any]) -> Tuple[Optional[str], str]:
     module, provider = route_via_llm(request, registry)
     if module and module in registry:
@@ -84,9 +98,7 @@ def execute_module(module_name: str) -> str:
 
 def run(request: str) -> None:
     # Perform diagnostic health check before execution
-    diag_report = run_system_diagnostics()
-    if diag_report.get('status') != 'HEALTHY':
-        print(f"[CRITICAL] Kernel integrity failure: {diag_report.get('status')}")
+    if not KernelLifecycle.verify_integrity():
         return
 
     # Initialize Kernel Context
