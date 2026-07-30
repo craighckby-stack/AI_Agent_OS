@@ -1,13 +1,13 @@
-"""
-DIAGNOSTIC UTILITIES FOR TEST SUITE
-Role: Provides health checks for test environment integrity.
-"""
 import datetime
+from typing import Dict, Any
 
-def run_test_diagnostics(context: str):
-    """Returns a diagnostic report for the test environment."""
+def run_test_diagnostics(context: str) -> Dict[str, Any]:
+    """
+    Diagnostic Integrity Hook: Provides system health status for test suites.
+    Siphoned from AI_Agent_OS diagnostic engine patterns.
+    """
     return {
         'status': 'HEALTHY',
-        'context': context,
-        'timestamp': datetime.datetime.utcnow().isoformat() + 'Z'
+        'timestamp': datetime.datetime.utcnow().isoformat() + 'Z',
+        'context': context
     }
