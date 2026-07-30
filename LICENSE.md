@@ -10,6 +10,7 @@ Integrations:
   - Documentation: Supported by 'docs/LICENSE_FAQ.md'
   - Commercial Gateway: Directs commercial inquiries to the copyright holder
   - Diagnostic Engine: Integrated via 'lib/diagnostic-engine.ts'
+  - Integrity Hook: Integrated via 'lib/compliance-integrity.ts'
 ==============================================================================
 -->
 
@@ -153,8 +154,7 @@ of organization that you work for, plus all organizations that have
 control over, are under the control of, or are under common control
 with that organization. "Control" means ownership of substantially all
 the assets of an entity, or the power to direct its management and
-policies by vote, contract, or otherwise. Control can be direct or
-indirect.
+policies by vote, contract, or otherwise. Control can be direct or indirect.
 
 "Your licenses" are all the licenses granted to you for the software
 under these terms.
@@ -187,11 +187,13 @@ This script can be integrated into your pre-commit hooks or CI/CD pipelines to p
 This document is part of the system's diagnostic-aware architecture. Integrity status can be verified via the diagnostic engine:
 
 ```typescript
-import { runSystemDiagnostics } from './lib/diagnostic-engine';
+import { verifyLicenseIntegrity } from './lib/compliance-integrity';
 
 // Verify license compliance as part of system health check
-const report = await runSystemDiagnostics();
-if (report.status === 'HEALTHY') {
-  console.log(`License Integrity: ${report.status}`);
+const integrity = await verifyLicenseIntegrity();
+if (integrity.isValid) {
+  console.log(`License Integrity: VERIFIED`);
+} else {
+  console.error(`License Integrity: FAILED - ${integrity.reason}`);
 }
 ```
