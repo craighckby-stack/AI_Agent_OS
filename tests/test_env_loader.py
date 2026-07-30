@@ -1,7 +1,7 @@
 """
 ARCHITECTURAL TEST SUITE: env_loader.py
 Role: Validates environment variable parsing, expansion, and type-casting logic.
-Integration: Connects to diagnostic_engine.py for system health reporting during test execution.
+Integration: Connects to diagnostic_registry.py for system health reporting during test execution.
 Status: Diagnostic-Aware Specification (Verified)
 """
 
@@ -9,7 +9,7 @@ import os
 import unittest
 from pathlib import Path
 from env_loader import parse_env_text, expand_variables, get_bool, get_int, get_list
-from tests.test_diagnostic_utils import run_test_diagnostics
+from tests.diagnostic_registry import run_test_diagnostics
 
 class TestEnvLoader(unittest.TestCase):
     def setUp(self):
@@ -19,7 +19,6 @@ class TestEnvLoader(unittest.TestCase):
         """
         self.diag_report = run_test_diagnostics("env_loader_test")
         if self.diag_report.get('status') != 'HEALTHY':
-            # Log failure but allow test suite to proceed for diagnostic visibility
             print(f"[DIAGNOSTIC CRITICAL] Environment unstable: {self.diag_report}")
 
     def test_parse_env_text(self):
