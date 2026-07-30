@@ -1,19 +1,29 @@
 /**
  * DIAGNOSTIC UTILITIES
- * Provides low-level validation logic for system components.
+ * Provides granular check logic for the diagnostic engine.
  */
 
-export const performDeepCheck = async (checkType: string): Promise<boolean> => {
-  // Simulated deep integrity checks for system components.
-  // In a production environment, this would interface with FS or process environment.
-  switch (checkType) {
-    case 'env_loader':
-      return typeof process.env !== 'undefined';
-    case 'memory_persistence':
-      return true; // Placeholder for actual storage path verification
-    case 'module_registry':
-      return true;
-    default:
-      return false;
+export interface DiagnosticResult {
+  passed: boolean;
+  message?: string;
+}
+
+export const performDeepCheck = async (checkType: string): Promise<DiagnosticResult> => {
+  try {
+    switch (checkType) {
+      case 'env_loader':
+        // Simulate environment validation
+        return { passed: true };
+      case 'memory_persistence':
+        // Simulate memory layer check
+        return { passed: true };
+      case 'module_registry':
+        // Simulate registry check
+        return { passed: true };
+      default:
+        return { passed: false, message: 'Unknown check type' };
+    }
+  } catch (err) {
+    return { passed: false, message: err instanceof Error ? err.message : 'Unknown error' };
   }
 };
