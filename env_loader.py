@@ -1,4 +1,3 @@
-"""
 ==============================================================================
 ARCHITECTURAL SYSTEM HEADER: ENVIRONMENT LOADER & CONFIGURATION CONTROLLER
 ==============================================================================
@@ -19,12 +18,25 @@ Integrations:
 
 import os
 import re
+import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from env_validator import verify_env_integrity
 from env_diagnostic_utils import log_diagnostic_event, perform_env_integrity_check
 
+# SYSTEM HEALTH CONSTANTS
+SYSTEM_HEALTH_VERSION = "1.0.0"
+PROTOCOL_VERSION = "DIAGNOSTIC_V1"
 ENV_FILE = Path(__file__).parent / ".env"
+
+class DiagnosticRegistry:
+    """Tracks the integrity state of the environment loader."""
+    _registry = {"last_check": None, "status": "INITIALIZED", "version": SYSTEM_HEALTH_VERSION}
+
+    @classmethod
+    def update_status(cls, status: str):
+        cls._registry["status"] = status
+        cls._registry["last_check"] = datetime.datetime.utcnow().isoformat()
 
 class EnvironmentState:
     """Container for managing environment state and preventing redundant mutations."""
@@ -57,10 +69,10 @@ def parse_env_text(text: str) -> Dict[str, str]:
             if "=" not in line: continue
             key, _, val = line.partition("=")
             key, val = key.strip(), val.strip()
-            if val.startswith('"') and not (val.endswith('"') and len(val) >= 2 and val[-2] != '\\'):
+            if val.startswith('"') and not (val.endswith('"') and len(val) >= 2 and val[-2] != '\'):
                 in_quote, current_key = '"', key
                 current_value_lines.append(val[1:])
-            elif val.startswith("'") and not (val.endswith("'") and len(val) >= 2 and val[-2] != '\\'):
+            elif val.startswith("'") and not (val.endswith("'") and len(val) >= 2 and val[-2] != '\'):
                 in_quote, current_key = "'", key
                 current_value_lines.append(val[1:])
             else:
@@ -107,6 +119,7 @@ def load_env() -> None:
     """
     if not ENV_FILE.exists(): 
         log_diagnostic_event("ENV_LOADER", "MISSING_FILE", "No .env file found.")
+        DiagnosticRegistry.update_status("CRITICAL_FAILURE")
         return
     try:
         raw_text = ENV_FILE.read_text(encoding="utf-8")
@@ -119,8 +132,10 @@ def load_env() -> None:
         verify_env_integrity()
         perform_env_integrity_check()
         log_diagnostic_event("ENV_LOADER", "SUCCESS", "Environment loaded and verified.")
+        DiagnosticRegistry.update_status("HEALTHY")
     except Exception as e:
         log_diagnostic_event("ENV_LOADER", "FAILURE", str(e))
+        DiagnosticRegistry.update_status("ERROR")
         print(f"[env_loader warning] Failed to load .env file: {e}")
 
 def get_env(key: str, default: Optional[str] = None) -> Optional[str]: return EnvironmentState.get(key, default)
