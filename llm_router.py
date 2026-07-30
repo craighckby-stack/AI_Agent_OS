@@ -1,14 +1,22 @@
 """
 LLM ROUTER KERNEL | ARCHITECTURAL LAYER 4
 Role: Orchestrates intelligent module routing via multi-provider LLM fallback.
-Integrates with: kernel.py, diagnostic-engine.py
+Integrates with: kernel.py, diagnostic_engine.py
+
+This module acts as the intelligent traffic controller for the agent system,
+leveraging diagnostic-aware fallback mechanisms to ensure high-availability routing.
 """
 
 import json
 import os
 import urllib.request
 import urllib.error
+import logging
 from diagnostic_engine import run_system_diagnostics
+
+# Configure logging for routing operations
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("LLMRouter")
 
 TIMEOUT = 10
 
@@ -40,7 +48,8 @@ def _post_json(url: str, headers: dict, payload: dict) -> dict | None:
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
             return json.loads(resp.read().decode("utf-8"))
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError):
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as e:
+        logger.debug(f"Provider request failed: {e}")
         return None
 
 def _try_gemini(prompt: str) -> str | None:
@@ -89,12 +98,15 @@ def route_via_llm(request: str, registry: dict) -> tuple[str | None, str | None]
     # Pre-flight diagnostic check
     diag = run_system_diagnostics()
     if diag.get('status') != 'HEALTHY':
+        logger.error(f"Routing aborted: System diagnostic failure: {diag.get('status')}")
         return None, None
         
     prompt = _build_prompt(request, registry)
     for name, fn in PROVIDERS:
         raw = fn(prompt)
-        if raw is None: continue
+        if raw is None: 
+            logger.debug(f"Provider {name} failed or returned no data.")
+            continue
         module = _extract_module(raw)
         if module:
             return module, name
