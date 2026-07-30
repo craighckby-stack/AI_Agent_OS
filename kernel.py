@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 """
-Kernel — the smallest possible implementation of the loop described in
-AI_Agent_OS_Architecture.md Section 4 (Execution Flow) and the benchmark
-at the end of that document.
-
-Runs identically in a Colab cell or in Termux on-device. No branching
-on environment anywhere in this file — that's the point.
-
+ARCHITECTURAL KERNEL — SYSTEM EXECUTION CORE
+Role: Orchestrates request routing, module execution, and memory persistence.
 Diagnostic Integration: Connects to diagnostic_engine.py for real-time system health monitoring.
 
 Usage:
@@ -24,6 +19,7 @@ from env_loader import load_env
 from llm_router import route_via_llm
 from diagnostic_engine import run_system_diagnostics
 
+# Initialize environment and diagnostic hooks
 load_env()
 
 ROOT = Path(__file__).parent
@@ -93,8 +89,8 @@ def execute_module(module_name: str) -> str:
 def run(request: str) -> None:
     # Perform diagnostic health check before execution
     diag_report = run_system_diagnostics()
-    if diag_report.get('status') == 'CRITICAL_FAILURE':
-        print(f"[CRITICAL] Kernel integrity failure: {diag_report.get('error')}")
+    if diag_report.get('status') != 'HEALTHY':
+        print(f"[CRITICAL] Kernel integrity failure: {diag_report.get('status')}")
         return
 
     start = time.monotonic()
