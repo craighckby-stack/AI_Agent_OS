@@ -6,12 +6,13 @@ Role: License Governance & Compliance Validation
 System Context: This document serves as the source of truth for the PolyForm 
                 Noncommercial License 1.0.0. It is integrated with the 
                 ComplianceValidator utility to enforce the 32-day grace period 
-                logic within the AI_Agent_OS kernel.
+                logic within the AI_Agent_OS kernel execution cycles.
+Version: 1.0.0-DIAGNOSTIC-AWARE
 Integrations:
-  - src/utils/compliance-validator.ts: Enforces the 32-day compliance window.
-  - kernel.py: References this document for system-level license checks.
-  - docs/COMPLIANCE_MANIFEST.md: Detailed audit trail of license state.
-  - docs/DIAGNOSTIC_INTEGRITY_HOOK.md: System health verification protocol.
+  - src/utils/compliance-validator.ts: Enforces the 32-day compliance window and telemetry status.
+  - kernel.py: References this document for system-level license and compliance checks.
+  - docs/COMPLIANCE_MANIFEST.md: Detailed audit trail of license state and compliance manifest records.
+  - docs/DIAGNOSTIC_INTEGRITY_HOOK.md: System health verification protocol and execution gates.
 ==============================================================================
 -->
 
@@ -36,20 +37,27 @@ If you are notified in writing of a violation, you have **32 days** to come into
 ### 5. How do I request a commercial license?
 Please reach out to **craighckby-stack** directly via GitHub to discuss commercial licensing terms.
 
+### 6. Does dynamic multi-agent context routing affect noncommercial status?
+**No.** Running autonomous agent routing, multi-provider LLM fallbacks, or local on-device inference via Termux/Colab remains fully compliant provided the underlying purpose remains noncommercial as defined in Section 1.
+
+### 7. How are diagnostic execution hooks linked to license compliance?
+The system uses automated diagnostic integrity hooks (`v1.0.0-DIAGNOSTIC-AWARE`) to perform automated health checks. These checks verify that license compliance state and manifest telemetry remain valid before kernel boot cycles.
+
 ## Compliance Verification
 
-System integrity is maintained via the `ComplianceValidator` module. 
-- **Grace Period:** 32 Days (Hard-coded in kernel).
+System integrity is maintained via the `ComplianceValidator` module.
+- **Grace Period:** 32 Days (Hard-coded in kernel & validator).
 - **Audit Trail:** See `docs/COMPLIANCE_MANIFEST.md` for current validation logs.
-- **Verification:** Run `python diagnostic_engine.py --verify-license` to check current status.
+- **Verification Command:** Run `python diagnostic_engine.py --verify-license` or `npm run verify:compliance` to check current status.
 
 ## System Health & Verification
 This document is subject to the `Diagnostic Integrity Hook`. Any modification to the license terms or grace period constants MUST be validated against the `ComplianceValidator` test suite.
 
 ### Integrity Hook Status
-- **Diagnostic Protocol:** `v1.0.0-stable`
-- **Validation Link:** `src/utils/compliance-validator.ts`
+- **Diagnostic Protocol:** `v1.0.0-DIAGNOSTIC-AWARE`
+- **Validation Module:** `src/utils/compliance-validator.ts`
 - **Verification Command:** `npm run verify:compliance`
+- **Pass Rate Threshold:** `100.0%`
 
 ## Diagnostic Governance
 All modifications to this document must trigger a re-validation of the `ComplianceValidator` state. Failure to pass the integrity hook will result in a system-wide lock on kernel execution cycles.
