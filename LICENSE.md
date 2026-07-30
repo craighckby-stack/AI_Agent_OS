@@ -9,6 +9,7 @@ Integrations:
   - CI/CD Pipeline: Verified via 'scripts/verify-license-compliance.sh'
   - Documentation: Supported by 'docs/LICENSE_FAQ.md'
   - Commercial Gateway: Directs commercial inquiries to the copyright holder
+  - Diagnostic Engine: Integrated via 'lib/diagnostic-engine.ts'
 ==============================================================================
 -->
 
@@ -187,6 +188,10 @@ This document is part of the system's diagnostic-aware architecture. Integrity s
 
 ```typescript
 import { runSystemDiagnostics } from './lib/diagnostic-engine';
+
+// Verify license compliance as part of system health check
 const report = await runSystemDiagnostics();
-console.log(`License Integrity: ${report.status}`);
+if (report.status === 'HEALTHY') {
+  console.log(`License Integrity: ${report.status}`);
+}
 ```
