@@ -20,7 +20,6 @@ class TestEnvLoader(unittest.TestCase):
         self.diag_report = run_test_diagnostics("env_loader_test")
         if self.diag_report.get('status') != 'HEALTHY':
             print(f"[DIAGNOSTIC CRITICAL] Environment unstable: {self.diag_report}")
-            # We allow the test to proceed but flag the instability in the report
 
     def test_parse_env_text(self):
         """Validates parsing logic for various environment file formats."""
