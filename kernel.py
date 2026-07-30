@@ -7,6 +7,8 @@ at the end of that document.
 Runs identically in a Colab cell or in Termux on-device. No branching
 on environment anywhere in this file — that's the point.
 
+Diagnostic Integration: Connects to diagnostic_engine.py for real-time system health monitoring.
+
 Usage:
     python3 kernel.py "what colour is the sky"
 """
@@ -20,6 +22,7 @@ from pathlib import Path
 
 from env_loader import load_env
 from llm_router import route_via_llm
+from diagnostic_engine import run_system_diagnostics
 
 load_env()
 
@@ -27,9 +30,7 @@ ROOT = Path(__file__).parent
 MODULES_DIR = ROOT / "modules"
 MEMORY_FILE = ROOT / "memory" / "local" / "memory.json"
 
-# Last-resort fallback if every LLM provider is unavailable (no keys set,
-# no local model running, or every call failed). Keeps the kernel usable
-# with zero setup — same reasoning as the Firebase-optional memory backend.
+# Last-resort fallback if every LLM provider is unavailable
 ROUTING_TABLE = {
     "sky": "sky_colour",
     "colour": "sky_colour",
@@ -38,8 +39,7 @@ ROUTING_TABLE = {
 
 
 def build_registry() -> dict:
-    """Scan modules/*/README.md and pull name + purpose for each module,
-    so the LLM router always has an up-to-date list without hardcoding."""
+    """Scan modules/*/README.md and pull name + purpose for each module."""
     registry = {}
     for readme in MODULES_DIR.glob("*/README.md"):
         text = readme.read_text()
@@ -64,11 +64,6 @@ def save_memory(memory: dict) -> None:
 
 
 def route_request(request: str, registry: dict) -> tuple[str | None, str]:
-    """
-    Tries the LLM provider chain first (Gemini -> OpenAI -> DeepSeek -> local).
-    Falls back to the keyword table only if every provider is unavailable.
-    Returns (module_name, how_it_was_routed) for transparency in the output.
-    """
     module, provider = route_via_llm(request, registry)
     if module and module in registry:
         return module, f"llm:{provider}"
@@ -81,24 +76,13 @@ def route_request(request: str, registry: dict) -> tuple[str | None, str]:
 
 
 def check_memory(memory: dict, module_name: str) -> dict | None:
-    """
-    Memory as evidence, not truth (Section 5). A hit only counts if the
-    stored confidence clears the bar and the entry hasn't expired.
-    """
     entry = memory.get(module_name)
-    if entry is None:
+    if entry is None or entry.get("confidence", 0) < 90:
         return None
-    if entry.get("confidence", 0) < 90:
-        return None
-    # No TTL set on this module (it's a stable, non-volatile fact) — treat
-    # as always valid. A volatile module would check entry["expiry"] here.
     return entry
 
 
 def execute_module(module_name: str) -> str:
-    """Fills and runs the module's pre-filled script. No params needed
-    for sky_colour; a real module would substitute values into run.sh
-    before executing."""
     script = MODULES_DIR / module_name / "run.sh"
     result = subprocess.run(
         ["bash", str(script)], capture_output=True, text=True, check=True
@@ -107,6 +91,12 @@ def execute_module(module_name: str) -> str:
 
 
 def run(request: str) -> None:
+    # Perform diagnostic health check before execution
+    diag_report = run_system_diagnostics()
+    if diag_report.get('status') == 'CRITICAL_FAILURE':
+        print(f"[CRITICAL] Kernel integrity failure: {diag_report.get('error')}")
+        return
+
     start = time.monotonic()
     memory = load_memory()
     registry = build_registry()
@@ -121,11 +111,9 @@ def run(request: str) -> None:
         elapsed = time.monotonic() - start
         print(f"[memory hit — no module execution, routed via {routed_via}]")
         print(f"Result: {cached['result']}")
-        print(f"(workflow={module_name}, confidence={cached['confidence']}%, "
-              f"elapsed={elapsed*1000:.1f}ms)")
+        print(f"(workflow={module_name}, confidence={cached['confidence']}%, elapsed={elapsed*1000:.1f}ms)")
         return
 
-    # Miss — run the module chain (here: a single module).
     result = execute_module(module_name)
     memory[module_name] = {
         "result": result,
