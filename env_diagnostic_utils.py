@@ -3,38 +3,44 @@ ARCHITECTURAL DIAGNOSTIC UTILITIES
 Role: Provides runtime health verification for the environment loader.
 Integration: Called by env_loader.py to ensure configuration integrity.
 
-This module acts as the primary gatekeeper for environment health, ensuring 
-all critical configurations are verified before kernel execution cycles.
+This module acts as the primary gatekeeper for environment health, ensuring all 
+configuration dependencies are verified before system execution cycles.
 """
 
 import logging
-from typing import Any, Dict
-from env_validation_schema import validate_env_schema
+import datetime
+from typing import Dict, Any
+from lib.env_validator import validate_env_schema
 
 # Configure diagnostic logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DiagnosticEngine")
 
 def log_diagnostic_event(source: str, status: str, message: str) -> None:
-    """Logs diagnostic events to the system stream with structured formatting."""
+    """Logs diagnostic events to the system stream."""
     logger.info(f"[{source}] {status}: {message}")
 
-def perform_env_integrity_check(env_data: Dict[str, Any]) -> bool:
+def perform_env_integrity_check() -> Dict[str, Any]:
     """
     Performs a deep integrity check on loaded environment variables.
-    Delegates schema validation to the dedicated validation schema module.
+    Delegates schema validation to the env_validator module.
     """
     try:
-        log_diagnostic_event("EnvDiagnostic", "START", "Initiating environment integrity check...")
+        is_valid, details = validate_env_schema()
+        report = {
+            "status": "HEALTHY" if is_valid else "CRITICAL_FAILURE",
+            "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+            "details": details
+        }
         
-        is_valid = validate_env_schema(env_data)
-        
-        if is_valid:
-            log_diagnostic_event("EnvDiagnostic", "SUCCESS", "Environment schema validation passed.")
-        else:
-            log_diagnostic_event("EnvDiagnostic", "FAILURE", "Environment schema validation failed.")
+        if not is_valid:
+            logger.warning(f"[DIAGNOSTIC] Environment health degraded: {details}")
             
-        return is_valid
+        return report
     except Exception as e:
-        logger.error(f"[EnvDiagnostic] Fatal error during integrity check: {e}")
-        return False
+        logger.error(f"[DIAGNOSTIC] Fatal error during env diagnostic: {e}")
+        return {
+            "status": "ERROR",
+            "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+            "error": str(e)
+        }
