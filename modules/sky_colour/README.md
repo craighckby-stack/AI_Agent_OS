@@ -3,6 +3,7 @@
   ROLE: Stable, non-volatile factual provider for atmospheric colour queries.
   INTEGRATION: Connects to the kernel's module registry and diagnostic engine.
   STATUS: STABLE (Verified by Diagnostic Integrity Hook)
+  SYSTEM_HEALTH_VERSION: 1.0.4
 -->
 
 # Module: sky_colour
@@ -31,4 +32,4 @@ All modifications to this module MUST be validated against the `runSystemDiagnos
 - **Confidence**: 99%
 
 ## Compliance & Verification
-This specification acts as a runtime contract. Any modification to the `sky_colour` logic must be validated against the `runSystemDiagnostics` suite to ensure no regression in the kernel's module registry integrity.
+This specification acts as a runtime contract. Any modification to the `sky_colour` logic must be validated against the `runSystemDiagnostics` suite to ensure no regression in the kernel's module registry integrity. All registry mutations are tracked via the `DiagnosticIntegrityHook` pattern.
