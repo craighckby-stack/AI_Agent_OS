@@ -52,11 +52,11 @@ def parse_env_text(text: str) -> Dict[str, str]:
             val = val.strip()
             
             # Check for multi-line quotes
-            if val.startswith('"') and not (val.endswith('"') and len(val) >= 2 and val[-2] != '\\'):
+            if val.startswith('"') and not (val.endswith('"') and len(val) >= 2 and val[-2] != '\'):
                 in_quote = '"'
                 current_key = key
                 current_value_lines.append(val[1:])
-            elif val.startswith("'") and not (val.endswith("'") and len(val) >= 2 and val[-2] != '\\'):
+            elif val.startswith("'") and not (val.endswith("'") and len(val) >= 2 and val[-2] != '\'):
                 in_quote = "'"
                 current_key = key
                 current_value_lines.append(val[1:])
@@ -70,15 +70,15 @@ def parse_env_text(text: str) -> Dict[str, str]:
                     val = val.strip()
                 
                 # Unescape common escape sequences
-                val = val.replace('\\"', '"').replace("\\'", "'").replace("\\n", "\n")
+                val = val.replace('\"', '"').replace("\'", "'").replace("\n", "\n")
                 env_dict[key] = val
         else:
             # Inside a multi-line quote
-            if stripped.endswith(in_quote) and not (stripped.endswith('\\' + in_quote) and len(stripped) >= 2):
+            if stripped.endswith(in_quote) and not (stripped.endswith('\' + in_quote) and len(stripped) >= 2):
                 current_value_lines.append(line[:line.rfind(in_quote)])
                 if current_key:
                     full_val = "\n".join(current_value_lines)
-                    full_val = full_val.replace('\\"', '"').replace("\\'", "'").replace("\\n", "\n")
+                    full_val = full_val.replace('\"', '"').replace("\'", "'").replace("\n", "\n")
                     env_dict[current_key] = full_val
                 in_quote = None
                 current_key = None
