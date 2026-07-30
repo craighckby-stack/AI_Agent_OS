@@ -26,6 +26,7 @@ execute_module_logic() {
 # Main Execution Gate
 # Implements the 'Fail-Fast' architectural pattern
 if [ -f "$DIAGNOSTIC_PATH" ]; then
+    # shellcheck source=./diagnostic_check.sh
     source "$DIAGNOSTIC_PATH"
     
     # Execute module-specific integrity check
@@ -44,7 +45,7 @@ EXIT_CODE=$?
 if [ $EXIT_CODE -eq 0 ]; then
     echo "[SUCCESS] Module sky_colour execution completed successfully."
 else
-    echo "[ERROR] Module sky_colour execution failed with code $EXIT_CODE."
+    echo "[ERROR] Module sky_colour execution failed with code $EXIT_CODE." >&2
 fi
 
 exit $EXIT_CODE
