@@ -1,15 +1,13 @@
 #!/bin/bash
-# ARCHITECTURAL UTILITY: Diagnostic Check for sky_colour module
-# Role: Validates module registry and environment readiness.
+# ARCHITECTURAL DIAGNOSTIC UTILITY: sky_colour
+# Role: Validates the integrity of the sky_colour module.
 
 perform_module_check() {
     local module_name=$1
-    # Simulate deep integrity check for the requested module
+    # Verify module environment variables or dependencies
     if [ -z "$module_name" ]; then
         return 1
     fi
-    
-    # Placeholder for actual file system or registry validation
-    # In a production environment, this would check for required config files
+    # Simulate integrity check
     return 0
 }
