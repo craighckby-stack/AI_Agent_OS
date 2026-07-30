@@ -12,10 +12,14 @@ import logging
 from pathlib import Path
 from typing import Dict, Any, List
 from diagnostic_registry import REGISTERED_CHECKS
+from diagnostic_context import DiagnosticContext
 
 # Configure diagnostic logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DiagnosticEngine")
+
+# Initialize global diagnostic context
+ctx = DiagnosticContext()
 
 def perform_deep_check(check_type: str) -> bool:
     """Simulates deep integrity checks for system components via registry."""
@@ -51,6 +55,9 @@ def run_system_diagnostics() -> Dict[str, Any]:
             'timestamp': datetime.datetime.utcnow().isoformat() + 'Z',
             'checks': results
         }
+        
+        # Update global diagnostic context
+        ctx.update_status(report['status'])
         
         if not is_healthy:
             logger.warning(f"[DIAGNOSTIC] System health degraded: {report}")
