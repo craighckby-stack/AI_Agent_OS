@@ -26,6 +26,17 @@ from env_diagnostic_utils import log_diagnostic_event, perform_env_integrity_che
 
 ENV_FILE = Path(__file__).parent / ".env"
 
+class EnvironmentState:
+    """Container for managing environment state and preventing redundant mutations."""
+    _cache: Dict[str, str] = {}
+
+    @classmethod
+    def update(cls, data: Dict[str, str]):
+        cls._cache.update(data)
+
+    @classmethod
+    def get(cls, key: str, default: Any = None) -> Any:
+        return cls._cache.get(key, os.environ.get(key, default))
 
 def parse_env_text(text: str) -> Dict[str, str]:
     """
@@ -46,10 +57,10 @@ def parse_env_text(text: str) -> Dict[str, str]:
             if "=" not in line: continue
             key, _, val = line.partition("=")
             key, val = key.strip(), val.strip()
-            if val.startswith('"') and not (val.endswith('"') and len(val) >= 2 and val[-2] != '\'):
+            if val.startswith('"') and not (val.endswith('"') and len(val) >= 2 and val[-2] != '\\'):
                 in_quote, current_key = '"', key
                 current_value_lines.append(val[1:])
-            elif val.startswith("'") and not (val.endswith("'") and len(val) >= 2 and val[-2] != '\'):
+            elif val.startswith("'") and not (val.endswith("'") and len(val) >= 2 and val[-2] != '\\'):
                 in_quote, current_key = "'", key
                 current_value_lines.append(val[1:])
             else:
@@ -68,7 +79,6 @@ def parse_env_text(text: str) -> Dict[str, str]:
             else:
                 current_value_lines.append(line)
     return env_dict
-
 
 def expand_variables(env_dict: Dict[str, str]) -> Dict[str, str]:
     """
@@ -90,7 +100,6 @@ def expand_variables(env_dict: Dict[str, str]) -> Dict[str, str]:
         expanded[key] = current_val
     return expanded
 
-
 def load_env() -> None:
     """
     Loads environment variables from the .env file. 
@@ -103,10 +112,10 @@ def load_env() -> None:
         raw_text = ENV_FILE.read_text(encoding="utf-8")
         parsed = parse_env_text(raw_text)
         expanded = expand_variables(parsed)
+        EnvironmentState.update(expanded)
         for key, value in expanded.items():
             os.environ.setdefault(key, value)
         
-        # Post-load integrity check
         verify_env_integrity()
         perform_env_integrity_check()
         log_diagnostic_event("ENV_LOADER", "SUCCESS", "Environment loaded and verified.")
@@ -114,12 +123,11 @@ def load_env() -> None:
         log_diagnostic_event("ENV_LOADER", "FAILURE", str(e))
         print(f"[env_loader warning] Failed to load .env file: {e}")
 
-
-def get_env(key: str, default: Optional[str] = None) -> Optional[str]: return os.environ.get(key, default)
-def get_bool(key: str, default: bool = False) -> bool: return os.environ.get(key, "").lower() in ("true", "1", "yes", "on") if key in os.environ else default
+def get_env(key: str, default: Optional[str] = None) -> Optional[str]: return EnvironmentState.get(key, default)
+def get_bool(key: str, default: bool = False) -> bool: return str(EnvironmentState.get(key, "")).lower() in ("true", "1", "yes", "on") if key in os.environ else default
 def get_int(key: str, default: int = 0) -> int:
-    try: return int(os.environ.get(key, default))
+    try: return int(EnvironmentState.get(key, default))
     except: return default
 def get_list(key: str, default: Optional[List[str]] = None, separator: str = ",") -> List[str]:
-    val = os.environ.get(key)
+    val = EnvironmentState.get(key)
     return [item.strip() for item in val.split(separator) if item.strip()] if val else (default or [])
