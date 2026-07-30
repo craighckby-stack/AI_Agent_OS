@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # LICENSE COMPLIANCE VERIFICATION CONTROLLER
-# ==============================================================================
-# Purpose: Scans the repository to ensure all source files contain the required
-#          copyright notice as mandated by the PolyForm Noncommercial License.
-# Usage: bash scripts/verify-license-compliance.sh
+# Role: Scans repository for copyright notices; integrates with system diagnostics.
+# Integration: Connects to diagnostic-engine for real-time health reporting.
 # ==============================================================================
 
 set -euo pipefail
+
+# Import Diagnostic Integrity Hook
+source "$(dirname "$0")/license-diagnostic-utils.sh"
 
 REQUIRED_NOTICE="Required Notice: Copyright craighckby-stack"
 ALT_NOTICE="Copyright craighckby-stack"
@@ -16,7 +17,8 @@ ALT_NOTICE="Copyright craighckby-stack"
 SCAN_EXTENSIONS=("py" "sh" "ts" "tsx" "js" "jsx" "go" "cpp" "h" "cs")
 EXCLUDE_DIRS=("node_modules" "dist" "build" ".git" "memory" "venv" "__pycache__")
 
-echo "🔍 Starting license compliance scan..."
+# Diagnostic-Aware Execution Wrapper
+log_diagnostic "Starting license compliance scan..."
 
 # Build find exclusion arguments
 EXCLUDE_ARGS=()
@@ -32,7 +34,6 @@ for ext in "${SCAN_EXTENSIONS[@]}"; do
     while IFS= read -r file; do
         if [ -f "$file" ]; then
             TOTAL_SCANNED=$((TOTAL_SCANNED + 1))
-            # Check if file contains either the required notice or the alternative notice
             if ! grep -qF "$REQUIRED_NOTICE" "$file" && ! grep -qF "$ALT_NOTICE" "$file"; then
                 NON_COMPLIANT_FILES+=("$file")
             fi
@@ -40,17 +41,14 @@ for ext in "${SCAN_EXTENSIONS[@]}"; do
     done < <(find . -type f -name "*.$ext" "${EXCLUDE_ARGS[@]}")
 done
 
-echo "📊 Scan complete. Scanned $TOTAL_SCANNED files."
-
+# Final Reporting
 if [ ${#NON_COMPLIANT_FILES[@]} -eq 0 ]; then
-    echo "✅ Success: All scanned files comply with the license notice requirements!"
+    report_success "All $TOTAL_SCANNED files comply with license requirements."
     exit 0
 else
-    echo "❌ Error: Found ${#NON_COMPLIANT_FILES[@]} non-compliant file(s) missing the copyright notice:"
+    report_failure "Found ${#NON_COMPLIANT_FILES[@]} non-compliant files."
     for file in "${NON_COMPLIANT_FILES[@]}"; do
         echo "   - $file"
     done
-    echo "💡 Please add the following comment to the top of these files:"
-    echo "   # Required Notice: Copyright craighckby-stack"
     exit 1
 fi
