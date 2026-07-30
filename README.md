@@ -29,6 +29,9 @@ if (report.status !== 'HEALTHY') {
 }
 ```
 
+## Diagnostic Governance
+All system modules MUST implement a diagnostic interface. The kernel enforces a 'Fail-Fast' policy: if any critical dependency fails the `runSystemDiagnostics` check, the execution loop is halted to prevent state corruption. This ensures the repository remains in a verifiable, production-ready state at all times.
+
 ## System Overview
 AI Agent OS is a lightweight, local-first agent kernel designed for execution in constrained environments (Colab, Termux, or local Linux/macOS). It utilizes a modular, contract-based architecture where the kernel acts as a router, memory manager, and execution orchestrator.
 
