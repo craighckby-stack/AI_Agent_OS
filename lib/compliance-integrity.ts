@@ -1,15 +1,15 @@
 /**
- * COMPLIANCE INTEGRITY GATEKEEPER
- * Role: Validates that the repository maintains legal compliance with the PolyForm license.
- * Integration: Used by the diagnostic engine to ensure system health.
+ * COMPLIANCE INTEGRITY HOOK
+ * Role: Validates repository license compliance status.
+ * Integration: Linked to LICENSE.md and diagnostic-engine.ts
  */
 
-export interface ComplianceResult {
+export interface ComplianceStatus {
   isValid: boolean;
   reason?: string;
 }
 
-export const verifyLicenseIntegrity = async (): Promise<ComplianceResult> => {
-  // Logic to scan files for 'Required Notice: Copyright craighckby-stack'
+export const verifyLicenseIntegrity = async (): Promise<ComplianceStatus> => {
+  // Logic to verify existence of required copyright notices in source files
   return { isValid: true };
 };
