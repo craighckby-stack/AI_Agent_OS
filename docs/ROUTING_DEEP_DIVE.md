@@ -7,6 +7,7 @@ System Context: This document details the multi-provider LLM fallback chain
                 and keyword routing table used by the Local Agent Kernel.
                 Integrates with: kernel.py, llm_router.py, env_loader.py, RoutingValidator
 Diagnostic Integrity Hook: system.routing.integrity_check()
+Verification Registry: Active (Tracked via lib/diagnostic-engine.ts)
 ==============================================================================
 -->
 
@@ -86,6 +87,8 @@ import { runSystemDiagnostics } from './lib/diagnostic-engine';
 const report = await runSystemDiagnostics();
 if (report.status !== 'HEALTHY') {
   console.error("Routing subsystem integrity breach detected.");
+  // Fail-Fast: Trigger kernel recovery
+  process.exit(1);
 }
 ```
 
