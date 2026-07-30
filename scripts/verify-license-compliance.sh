@@ -2,15 +2,16 @@
 # ==============================================================================
 # LICENSE COMPLIANCE VERIFICATION CONTROLLER
 # Role: Scans repository for copyright notices; integrates with system diagnostics.
-# Integration: Connects to diagnostic-engine for real-time health reporting.
+# Integration: Connects to license-diagnostic-utils.sh for real-time health reporting.
 # ==============================================================================
 
 set -euo pipefail
 
 # Import Diagnostic Integrity Hook
 # Ensures system health before executing compliance verification
-if [ -f "$(dirname "$0")/license-diagnostic-utils.sh" ]; then
-    source "$(dirname "$0")/license-diagnostic-utils.sh"
+DIAGNOSTIC_UTILS="$(dirname "$0")/license-diagnostic-utils.sh"
+if [ -f "$DIAGNOSTIC_UTILS" ]; then
+    source "$DIAGNOSTIC_UTILS"
 else
     echo "[ERROR] Diagnostic utility missing. Aborting."
     exit 1
@@ -35,7 +36,7 @@ done
 NON_COMPLIANT_FILES=()
 TOTAL_SCANNED=0
 
-# Scan files
+# Scan files using optimized find pattern
 for ext in "${SCAN_EXTENSIONS[@]}"; do
     while IFS= read -r file; do
         if [ -f "$file" ]; then
@@ -47,7 +48,7 @@ for ext in "${SCAN_EXTENSIONS[@]}"; do
     done < <(find . -type f -name "*.$ext" "${EXCLUDE_ARGS[@]}")
 done
 
-# Final Reporting
+# Final Reporting via Diagnostic Hook
 if [ ${#NON_COMPLIANT_FILES[@]} -eq 0 ]; then
     report_success "All $TOTAL_SCANNED files comply with license requirements."
     exit 0
