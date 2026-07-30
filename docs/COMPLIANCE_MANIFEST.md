@@ -22,6 +22,10 @@ To verify compliance programmatically, execute the diagnostic suite:
 ```typescript
 import { runComplianceDiagnostics } from './lib/compliance-integrity';
 
+/**
+ * Executes the compliance diagnostic suite.
+ * Adheres to the 'Fail-Fast' architectural mandate.
+ */
 const report = await runComplianceDiagnostics();
 if (report.status !== 'HEALTHY') {
   throw new Error(`Compliance Failure: ${report.status}`);
@@ -30,4 +34,4 @@ console.log('System Compliance Verified:', report.timestamp);
 ```
 
 ## Diagnostic Governance
-All future modules must register their compliance status via the `DiagnosticEngine` to ensure adherence to the 'Fail-Fast' architectural principle. Compliance checks are now integrated into the global diagnostic registry, allowing for automated, non-blocking verification of repository integrity.
+All future modules must register their compliance status via the `DiagnosticEngine` to ensure adherence to the 'Fail-Fast' architectural principle. Compliance checks are now integrated into the global diagnostic registry, allowing for automated, non-blocking verification of repository integrity. This manifest is now programmatically linked to the system kernel via the `DiagnosticIntegrityHook` interface.
