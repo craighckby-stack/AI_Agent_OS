@@ -4,9 +4,13 @@
 # Role: Scans repository for copyright notices; integrates with system diagnostics.
 # Integration: Connects to license-diagnostic-utils.sh for real-time health reporting.
 # Governance: Enforces 'Fail-Fast' diagnostic integrity hooks.
+# Version: 1.0.2-DIAGNOSTIC-STABLE
 # ==============================================================================
 
 set -euo pipefail
+
+# System Health Versioning
+SYSTEM_HEALTH_VERSION="1.0.2"
 
 # Import Diagnostic Integrity Hook
 # Ensures system health before executing compliance verification
@@ -18,6 +22,12 @@ else
     exit 1
 fi
 
+# Pre-flight Diagnostic Check
+if ! perform_diagnostic_preflight "LICENSE_COMPLIANCE_CONTROLLER"; then
+    report_failure "Pre-flight diagnostic check failed. Compliance scan aborted."
+    exit 1
+fi
+
 REQUIRED_NOTICE="Required Notice: Copyright craighckby-stack"
 ALT_NOTICE="Copyright craighckby-stack"
 
@@ -26,7 +36,7 @@ SCAN_EXTENSIONS=("py" "sh" "ts" "tsx" "js" "jsx" "go" "cpp" "h" "cs")
 EXCLUDE_DIRS=("node_modules" "dist" "build" ".git" "memory" "venv" "__pycache__")
 
 # Diagnostic-Aware Execution Wrapper
-log_diagnostic "Starting license compliance scan..."
+log_diagnostic "Starting license compliance scan (v$SYSTEM_HEALTH_VERSION)..."
 
 # Build find exclusion arguments
 EXCLUDE_ARGS=()
@@ -54,7 +64,7 @@ if [ ${#NON_COMPLIANT_FILES[@]} -eq 0 ]; then
     report_success "All $TOTAL_SCANNED files comply with license requirements."
     exit 0
 else
-    report_failure "Found ${#NON_COMPLIANT_FILES[@]} non-compliant files."
+    report_failure "Found ${#NON_COMPLIANT_FILES[@]} non-compliant files out of $TOTAL_SCANNED."
     for file in "${NON_COMPLIANT_FILES[@]}"; do
         echo "   - $file"
     done
