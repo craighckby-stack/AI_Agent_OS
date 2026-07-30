@@ -2,13 +2,14 @@
 ==============================================================================
 ARCHITECTURAL SYSTEM HEADER: EVIDENCE-BASED MEMORY SPECIFICATION
 ==============================================================================
-Role: Memory Subsystem Specification
+Role: Memory Subsystem Specification & Governance Controller
 System Context: This document defines the "Memory as Evidence, Not Truth" paradigm
                 used by the Local Agent Kernel. It details the flat-file storage
                 schema, confidence scoring, and TTL/expiry validation.
 Integrations:
   - kernel.py: Implements the verification logic.
   - modules/: Source of truth for module execution.
+  - lib/memory-validator.ts: Compliance verification utility.
 ==============================================================================
 -->
 
@@ -52,3 +53,9 @@ Memory is persisted in a single, flat JSON file at `memory/local/memory.json`. T
 
 - **Memory Hit:** ~1-5ms (Close to instant, zero network overhead, zero API costs).
 - **Memory Miss:** ~500ms - 3000ms (Requires LLM routing and subprocess execution).
+
+## 🛡️ Compliance & Verification
+
+All memory operations are subject to the `MemoryValidator` utility. This ensures that the memory state remains consistent with the system's diagnostic manifest. 
+
+- **Integrity Check:** Run `MemoryValidator.verify()` to ensure the `memory.json` file adheres to the current schema version and confidence requirements.
