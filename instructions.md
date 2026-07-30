@@ -84,6 +84,13 @@ You type a request. The kernel decides which module answers it, checks if it's a
 
 --- 
 
-## System Integrity Check
+## System Integrity & Compliance Verification
 
-To ensure the kernel remains operational, the system performs a diagnostic check on every boot. This verifies that the `modules/` directory is accessible and the `memory/` file structure is writable. For automated health checks, refer to `lib/diagnostic-engine.ts`.
+To ensure the kernel remains operational, the system performs a diagnostic check on every boot. This verifies that the `modules/` directory is accessible and the `memory/` file structure is writable. 
+
+### Diagnostic Governance
+- **Runtime Integrity:** The `lib/diagnostic-engine.ts` utility executes a deep-check of the kernel state.
+- **Verification Hook:** Every boot cycle triggers `runSystemDiagnostics()` to validate the environment and persistence layers.
+- **Compliance:** Any failure in the diagnostic suite halts execution to prevent state corruption, adhering to the 'Zero-Leak' architecture patterns.
+
+For automated health checks and integration details, refer to `lib/diagnostic-engine.ts`.
