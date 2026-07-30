@@ -8,7 +8,13 @@
 set -euo pipefail
 
 # Import Diagnostic Integrity Hook
-source "$(dirname "$0")/license-diagnostic-utils.sh"
+# Ensures system health before executing compliance verification
+if [ -f "$(dirname "$0")/license-diagnostic-utils.sh" ]; then
+    source "$(dirname "$0")/license-diagnostic-utils.sh"
+else
+    echo "[ERROR] Diagnostic utility missing. Aborting."
+    exit 1
+fi
 
 REQUIRED_NOTICE="Required Notice: Copyright craighckby-stack"
 ALT_NOTICE="Copyright craighckby-stack"
