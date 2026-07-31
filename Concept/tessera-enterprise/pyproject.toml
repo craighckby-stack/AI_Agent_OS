@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tessera-os"
+version = "0.1.0"
+description = "An agent OS where modules are tiles — routes, caches, and orchestrates deterministic local modules with multi-provider LLM fallback."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [
+    { name = "Tessera Contributors" },
+]
+keywords = ["ai", "agent", "kernel", "llm", "cache", "routing", "modules"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+image = ["pillow>=10.0.0", "numpy>=1.24.0"]
+redis = ["redis>=5.0.0"]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0",
+]
+
+[project.scripts]
+tessera = "tessera.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/your-org/tessera"
+Documentation = "https://github.com/your-org/tessera#readme"
+Repository = "https://github.com/your-org/tessera"
+Issues = "https://github.com/your-org/tessera/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tessera"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --cov=tessera --cov-report=term-missing"
+testpaths = ["tests"]
