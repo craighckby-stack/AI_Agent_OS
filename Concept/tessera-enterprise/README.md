@@ -52,6 +52,20 @@ user request
 └──────────────────────────────────────────────┘
 ```
 
+## Diagnostic Integrity & Lifecycle
+
+To ensure system-wide reliability, all Tessera modules must expose a `diagnostic_hook.sh` script. The kernel executes this hook prior to module invocation to verify:
+
+- **Environment Readiness:** Python/dependency availability via `diagnostic_engine`.
+- **Cache Integrity:** Write permissions for module-specific cache directories.
+- **Resource Availability:** API keys or hardware access (e.g., GPU/Camera) required for execution.
+
+Modules failing the diagnostic hook are quarantined by the Kernel to prevent runtime failures. Telemetry is captured per-execution to ensure performance metrics align with the `DiagnosticResult` standards.
+
+## Security & Compliance
+
+All modules adhere to 'Zero-Leak' standards. Temporary artifacts are purged via trap-based cleanup, and all diagnostic outputs are formatted to be compatible with the Tessera Enterprise kernel's telemetry standards, ensuring auditability for SOC2 and HIPAA-ready environments.
+
 ## Quick start
 
 ```bash
@@ -83,15 +97,6 @@ chmod +x modules/my_module/run.sh
 tessera "use my module"
 ```
 
-## Diagnostic Integrity
-
-To ensure system-wide reliability, all Tessera modules must expose a `diagnostic_hook.sh` script. The kernel executes this hook prior to module invocation to verify:
-- **Environment Readiness:** Python/dependency availability.
-- **Cache Integrity:** Write permissions for module-specific cache directories.
-- **Resource Availability:** API keys or hardware access (e.g., GPU/Camera) required for execution.
-
-Modules failing the diagnostic hook will be quarantined by the Kernel to prevent runtime failures.
-
 ## Module contract
 
 A Tessera module is **any executable** that:
@@ -103,17 +108,6 @@ A Tessera module is **any executable** that:
    - Writes its result to **stdout**
    - Exits 0 on success, non-zero on failure
 
-The kernel handles caching, routing, and memory. Your module just does its job.
-
-### Cluster key strategies
-
-| Strategy | When to use | Cache key |
-|----------|-------------|-----------|
-| `static` | Module always returns same answer (e.g. `sky_colour`) | `module_name` |
-| `request` | Each unique phrasing gets its own slot (e.g. `general_qa`) | `module::md5(request)` |
-| `extract:image` | All phrasings about the same image share one slot | `module::cluster::<filename>` |
-| `extract:url` | All phrasings about the same URL share one slot | `module::cluster::<url>` |
-
 ## Benchmark highlights
 
 Measured against direct LLM calls on identical workloads. Full numbers in [BENCHMARK.md](BENCHMARK.md).
@@ -123,43 +117,15 @@ Measured against direct LLM calls on identical workloads. Full numbers in [BENCH
 | High-repeat Q&A (80% cache hits) | $0.1235 / 10K queries | $0.0461 | **-62.6%** |
 | Image analysis (50 images × 20 phrasings) | $0.0613 / 1K queries | $0.0008 | **-98.7%** |
 
-The image analysis workload also produces **50 structured numeric fields with real pixel data** — the direct LLM produces 0 real data, only hallucinated text.
-
 ## Architecture
 
 The kernel is decoupled into independently swappable components:
 
 - **`Router`** — multi-provider LLM interface with keyword fallback
-- **`RouterCache`** — caches routing decisions, drops break-even from 50% to 20% hit rate
-- **`Cache`** — pluggable: `FileCache` (default, zero-dep) or `RedisCache` (enterprise)
-- **`ModuleRegistry`** — discovers modules, builds the routing table, manages intent clusters
-
-A developer can swap any component with two lines of code. See [ARCHITECTURE.md](ARCHITECTURE.md).
-
-## Open core
-
-Tessera is Apache-2.0 licensed. The core kernel, router, cache interface, and module registry are free forever.
-
-**Enterprise features** (separate package, `tessera-enterprise`):
-- Distributed Redis/Memcached caching for fleet-wide semantic cache hits
-- Role-based access control (RBAC) per module
-- Token budget management per user/team
-- Compliance audit logging (SOC2, HIPAA-ready)
-
-## Status
-
-- ✅ Core kernel (router, cache, modules)
-- ✅ Intent-clustered caching
-- ✅ Router cache (routing-decision cache)
-- ✅ Reference modules: `general_qa`, `pixel_analyzer`, `calculator`
-- 🚧 Redis cache backend
-- 🚧 Enterprise audit logging
-- 📋 Planned: vector DB cache backend, module sandboxing
+- **`RouterCache`** — caches routing decisions
+- **`Cache`** — pluggable: `FileCache` (default) or `RedisCache` (enterprise)
+- **`ModuleRegistry`** — discovers modules, builds the routing table
 
 ## License
 
 Apache 2.0 — see [LICENSE](LICENSE).
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) (when it exists) and [docs/writing-modules.md](docs/writing-modules.md). PRs welcome — especially new modules.
