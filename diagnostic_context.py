@@ -62,6 +62,8 @@ class DiagnosticContext:
             return serialize_context(raw_context)
 
     def clear_history(self):
-        """Resets the diagnostic history log."""
+        """
+        Resets the diagnostic history log.
+        """
         with self._lock:
             self.history = []
