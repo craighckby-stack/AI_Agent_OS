@@ -12,7 +12,7 @@ import time
 import hashlib
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
-
+from src.utils.memory_diagnostic_utils import MemoryDiagnosticEngine
 
 class MemoryVerifier:
     """
@@ -28,6 +28,7 @@ class MemoryVerifier:
             self.memory_file = Path(memory_path)
         else:
             self.memory_file = Path(__file__).parent.parent.parent / "memory" / "local" / "memory.json"
+        self.engine = MemoryDiagnosticEngine()
 
     def calculate_decayed_confidence(
         self, initial_confidence: float, timestamp: float, half_life: float = HALF_LIFE_SECONDS
@@ -43,16 +44,14 @@ class MemoryVerifier:
         return round(initial_confidence * decay_factor, 2)
 
     def compute_hash(self, content: str) -> str:
-        """Computes SHA-256 digest string for content integrity checking."""
+        """
+        Computes SHA-256 digest string for content integrity checking.
+        """
         return hashlib.sha256(content.encode('utf-8')).hexdigest()
 
     def validate_entry(self, entry: Dict[str, Any], min_confidence: float = DEFAULT_CONFIDENCE_THRESHOLD) -> Tuple[bool, str]:
         """
         Validates a single memory entry against evidence criteria.
-        
-        :param entry: Memory entry dictionary.
-        :param min_confidence: Minimum acceptable confidence score.
-        :return: Tuple of (is_valid, reason_string).
         """
         required_keys = ["result", "confidence", "version"]
         for key in required_keys:
@@ -75,7 +74,9 @@ class MemoryVerifier:
         return True, f"Valid evidence (effective confidence: {decayed_confidence}%)"
 
     def load_memory_store(self) -> Dict[str, Any]:
-        """Reads flat-file JSON memory store safely."""
+        """
+        Reads flat-file JSON memory store safely.
+        """
         if not self.memory_file.exists():
             return {}
         try:
@@ -102,10 +103,9 @@ class MemoryVerifier:
 
     def verify_all(self) -> Dict[str, Any]:
         """
-        Performs full store verification sweep.
-        
-        :return: Diagnostic status payload.
+        Performs full store verification sweep with integrated telemetry.
         """
+        start_time = time.perf_counter()
         store = self.load_memory_store()
         total_entries = len(store)
         valid_entries = 0
@@ -122,12 +122,15 @@ class MemoryVerifier:
                 invalid_details[module_name] = "Malformed entry structural format"
 
         is_healthy = total_entries == 0 or (valid_entries / total_entries) >= 0.8
+        duration_ms = (time.perf_counter() - start_time) * 1000.0
 
-        return {
-            "status": "HEALTHY" if is_healthy else "DEGRADED",
-            "total_entries": total_entries,
-            "valid_entries": valid_entries,
-            "invalid_entries": total_entries - valid_entries,
-            "details": invalid_details,
-            "timestamp": time.time()
-        }
+        return self.engine.generate_diagnostic_report(
+            status="HEALTHY" if is_healthy else "DEGRADED",
+            metrics={
+                "total_entries": total_entries,
+                "valid_entries": valid_entries,
+                "invalid_entries": total_entries - valid_entries,
+                "duration_ms": round(duration_ms, 3)
+            },
+            details=invalid_details
+        )
