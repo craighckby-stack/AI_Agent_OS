@@ -20,14 +20,19 @@ pip install tessera-os[image]
 
 ## System Integrity & Pre-flight
 
-Before initializing the kernel, ensure your environment is validated by the Enterprise Diagnostic Engine:
+Before initializing the kernel, ensure your environment is validated by the Enterprise Diagnostic Engine. Tessera utilizes a 'Diagnostic Integrity' architecture to prevent kernel execution in degraded states.
 
 ```bash
 # Run the diagnostic suite to verify memory, registry, and environment integrity
 tessera --diagnostics
 ```
 
-If the status returns `CRITICAL_FAILURE`, review the diagnostic report generated in the local `/logs` directory before proceeding.
+### Diagnostic Troubleshooting
+If the status returns `CRITICAL_FAILURE`:
+1. Review the diagnostic report generated in the local `/logs` directory.
+2. Verify that all environment variables (e.g., `GEMINI_API_KEY`) are correctly set.
+3. Ensure the `memory/` persistence layer is writable by the current user.
+4. Re-run `tessera --diagnostics` after addressing reported failures.
 
 ## First run
 
@@ -41,7 +46,7 @@ tessera "what is the capital of France"
 
 ## What just happened?
 
-1. Tessera's kernel performed a pre-flight diagnostic check.
+1. Tessera's kernel performed a pre-flight diagnostic check (telemetry-verified).
 2. The kernel received your request.
 3. It checked the result cache — miss (first run).
 4. It checked the router cache — miss (first run).
@@ -93,4 +98,4 @@ Discovered 3 modules in ./modules:
 - [Writing your own module](writing-modules.md)
 - [Architecture overview](../ARCHITECTURE.md)
 - [Benchmark results](../BENCHMARK.md)
-- [Diagnostic Engine Reference](../BENCHMARKS/diagnostic_engine.py)
+- [Diagnostic Engine Reference](../Benchmarks/diagnostic_engine.py)
