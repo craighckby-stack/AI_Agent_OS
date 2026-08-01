@@ -2,6 +2,7 @@
 # general_qa/run.sh — LLM-backed fallback module with per-query disk cache.
 # Role: Enterprise-grade QA module with pre-flight diagnostic validation.
 # Integration: Connects to diagnostic_hook.sh for environment integrity checks.
+# Version: 1.0.0-DIAGNOSTIC-AWARE
 
 set -e
 
@@ -10,7 +11,7 @@ MODULE_DIR="$(cd "$(dirname "$0")" && pwd)"
 if [ -f "$MODULE_DIR/diagnostic_hook.sh" ]; then
     source "$MODULE_DIR/diagnostic_hook.sh"
     if ! perform_pre_flight_check; then
-        echo "[general_qa error] Pre-flight diagnostic check failed." >&2
+        echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] [general_qa error] Pre-flight diagnostic check failed." >&2
         exit 1
     fi
 fi
@@ -68,16 +69,20 @@ fi
 
 python3 -c "
 import json
-d = json.load(open('$TMP_OUT'))
-answer = d['choices'][0]['message']['content'].strip()
-usage = d.get('usage', {})
-out = {
-    'answer': answer,
-    'prompt_tokens': usage.get('prompt_tokens', 0),
-    'completion_tokens': usage.get('completion_tokens', 0),
-    'total_tokens': usage.get('total_tokens', 0),
-    'model': d.get('model', 'unknown'),
-}
-json.dump(out, open('$CACHE_FILE', 'w'), indent=2)
-print(answer)
+try:
+    d = json.load(open('$TMP_OUT'))
+    answer = d['choices'][0]['message']['content'].strip()
+    usage = d.get('usage', {})
+    out = {
+        'answer': answer,
+        'prompt_tokens': usage.get('prompt_tokens', 0),
+        'completion_tokens': usage.get('completion_tokens', 0),
+        'total_tokens': usage.get('total_tokens', 0),
+        'model': d.get('model', 'unknown'),
+    }
+    json.dump(out, open('$CACHE_FILE', 'w'), indent=2)
+    print(answer)
+except Exception as e:
+    print(f'Error processing response: {e}')
+    exit(1)
 "
