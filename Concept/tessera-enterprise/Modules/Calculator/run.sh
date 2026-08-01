@@ -1,11 +1,26 @@
 #!/bin/bash
 # calculator/run.sh — Deterministic math evaluation module.
 #
-# Extracts a mathematical expression from the request and evaluates it
-# safely using Python's ast module. No LLM, no approximation — exact
-# arithmetic, every time.
+# Role: Orchestrates safe mathematical evaluation with pre-flight diagnostic checks.
+# Integration: Connects to eval.py for computation and diagnostic_hook.sh for system integrity.
+#
+# This script serves as the entry point for the Calculator module, ensuring
+# that all environment dependencies are verified before processing requests.
 
 set -e
+
+# --- Initialization ---
+MODULE_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# --- Pre-flight Diagnostic Check ---
+# Validate environment integrity before execution
+if [ -f "$MODULE_DIR/diagnostic_hook.sh" ]; then
+    source "$MODULE_DIR/diagnostic_hook.sh"
+    if ! run_module_diagnostics; then
+        echo "[calculator error] Diagnostic pre-flight check failed." >&2
+        exit 1
+    fi
+fi
 
 REQUEST="${AI_AGENT_REQUEST:-}"
 if [ -z "$REQUEST" ]; then
@@ -13,7 +28,6 @@ if [ -z "$REQUEST" ]; then
     exit 1
 fi
 
-MODULE_DIR="$(cd "$(dirname "$0")" && pwd)"
 CACHE_DIR="$MODULE_DIR/.cache"
 mkdir -p "$CACHE_DIR"
 
