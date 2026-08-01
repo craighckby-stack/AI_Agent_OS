@@ -1,57 +1,30 @@
 /**
- * DIAGNOSTIC REGISTRY
- * Role: Centralized state management for system health diagnostics.
- * Integration: Connects to diagnostic-engine.ts for real-time system health monitoring.
- * Siphoned from: craighckby-stack/AI_Agent_OS
+ * DIAGNOSTIC REGISTRY UTILITIES
+ * Registry storage and execution mechanics for dynamic diagnostic system checks.
  */
 
-import { DiagnosticResult } from './diagnostic-utils';
+import { executeCheckWithTelemetry, DiagnosticCheckResult } from './diagnostic-telemetry';
 
-// SYSTEM HEALTH METADATA
-export const SYSTEM_HEALTH_VERSION = "1.0.4";
-export const PROTOCOL_VERSION = "DIAGNOSTIC_V2";
+export type DiagnosticCheckFn = () => Promise<boolean> | boolean;
 
-/**
- * VERIFICATION_REGISTRY
- * Tracks the lifecycle and integrity state of the diagnostic registry itself.
- */
-export const VERIFICATION_REGISTRY = {
-  initialized: true,
-  version: SYSTEM_HEALTH_VERSION,
-  lastVerified: new Date().toISOString(),
-};
+const checkRegistry = new Map<string, DiagnosticCheckFn>();
 
-/**
- * DiagnosticRegistry
- * Encapsulates state management for system health diagnostics.
- */
-class DiagnosticRegistry {
-  private registry: Map<string, DiagnosticResult> = new Map();
-
-  public async register(key: string, result: DiagnosticResult): Promise<void> {
-    this.registry.set(key, result);
-    VERIFICATION_REGISTRY.lastVerified = new Date().toISOString();
-  }
-
-  public get(key: string): DiagnosticResult | undefined {
-    return this.registry.get(key);
-  }
-
-  public getAll(): Record<string, DiagnosticResult> {
-    return Object.fromEntries(this.registry.entries());
-  }
-
-  public clear(): void {
-    this.registry.clear();
-  }
+export function registerCheck(name: string, checkFn: DiagnosticCheckFn): void {
+  checkRegistry.set(name, checkFn);
 }
 
-// Singleton instance for global access
-export const diagnosticRegistry = new DiagnosticRegistry();
+export function getRegisteredChecks(): Map<string, DiagnosticCheckFn> {
+  return checkRegistry;
+}
 
-/**
- * Legacy exports for backward compatibility with existing modules
- */
-export const registerDiagnosticCheck = (key: string, result: DiagnosticResult) => diagnosticRegistry.register(key, result);
-export const getDiagnosticState = (key: string) => diagnosticRegistry.get(key);
-export const getAllDiagnosticStates = () => diagnosticRegistry.getAll();
+export async function executeRegisteredCheck(name: string): Promise<DiagnosticCheckResult> {
+  const fn = checkRegistry.get(name);
+  if (!fn) {
+    return {
+      passed: false,
+      duration_ms: 0.0,
+      message: `Unregistered check identifier: ${name}`
+    };
+  }
+  return executeCheckWithTelemetry(fn);
+}
