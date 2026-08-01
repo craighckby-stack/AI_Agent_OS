@@ -10,9 +10,10 @@ environment configuration.
 """
 import os
 import logging
-import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any
 from lib.env_validation_schema import validate_schema
+from lib.env_diagnostic_utils import format_timestamp, execute_check_with_telemetry
+from lib.diagnostic_utils_core import DiagnosticResult
 
 # SYSTEM HEALTH CONSTANTS
 SYSTEM_HEALTH_VERSION = "1.2.0"
@@ -25,6 +26,12 @@ logger = logging.getLogger("EnvValidator")
 # VERIFICATION REGISTRY
 REQUIRED_KEYS = ["GEMINI_API_KEY", "OPENAI_API_KEY", "SYSTEM_MODE"]
 
+def _run_integrity_check() -> bool:
+    """Internal logic for environment variable presence and schema validation."""
+    missing = [key for key in REQUIRED_KEYS if key not in os.environ]
+    schema_errors = validate_schema(os.environ)
+    return len(missing) == 0 and len(schema_errors) == 0
+
 def verify_env_integrity() -> Dict[str, Any]:
     """
     Checks if required environment variables are set and validates their schema.
@@ -32,21 +39,22 @@ def verify_env_integrity() -> Dict[str, Any]:
     """
     logger.info(f"[DIAGNOSTIC] Starting environment integrity check (v{SYSTEM_HEALTH_VERSION})...")
     
+    passed, duration = execute_check_with_telemetry(_run_integrity_check, "env_integrity")
+    
     missing = [key for key in REQUIRED_KEYS if key not in os.environ]
     schema_errors = validate_schema(os.environ)
     
-    is_healthy = len(missing) == 0 and len(schema_errors) == 0
-    
     report = {
-        "status": "HEALTHY" if is_healthy else "CRITICAL_FAILURE",
+        "status": "HEALTHY" if passed else "CRITICAL_FAILURE",
         "missing_keys": missing,
         "schema_errors": schema_errors,
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "timestamp": format_timestamp(),
+        "duration_ms": duration,
         "version": SYSTEM_HEALTH_VERSION,
         "protocol": PROTOCOL_VERSION
     }
 
-    if not is_healthy:
+    if not passed:
         logger.warning(f"[DIAGNOSTIC] Environment health degraded: {report}")
     else:
         logger.info("[DIAGNOSTIC] Environment integrity verified.")
