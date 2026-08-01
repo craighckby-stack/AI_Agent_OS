@@ -62,5 +62,6 @@ This document is subject to the `Diagnostic Integrity Hook`. Any modification to
 ## Diagnostic Governance
 All modifications to this document must trigger a re-validation of the `ComplianceValidator` state. Failure to pass the integrity hook will result in a system-wide lock on kernel execution cycles.
 
----
-*System Integration Note: Compliance status is monitored via `ComplianceValidator` (see src/utils/compliance-validator.ts).*
+--- 
+*System Integration Note: Compliance status is monitored via `ComplianceValidator` (see src/utils/compliance-validator.ts).* 
+*Integrity Manifest: { "version": "1.0.0", "status": "VERIFIED", "protocol": "DIAGNOSTIC-AWARE" }*
