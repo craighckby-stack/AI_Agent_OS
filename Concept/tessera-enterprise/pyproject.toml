@@ -25,12 +25,22 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-dependencies = []
+dependencies = [
+    "pydantic>=2.0.0",
+    "loguru>=0.7.0",
+    "httpx>=0.25.0",
+]
 
 [project.optional-dependencies]
 image = ["pillow>=10.0.0", "numpy>=1.24.0"]
 redis = ["redis>=5.0.0"]
-diagnostic = ["pytest>=7.0", "pytest-cov>=4.0", "mypy>=1.0", "ruff>=0.1.0"]
+diagnostic = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "mypy>=1.0",
+    "ruff>=0.1.0",
+    "types-requests",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
