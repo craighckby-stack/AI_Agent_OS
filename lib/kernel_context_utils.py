@@ -1,19 +1,22 @@
-"""
-UTILITY HELPERS FOR KERNEL CONTEXT
-Role: Provides lightweight diagnostic metrics and serialization helpers.
-"""
-
-import os
-import psutil
+import datetime
+import time
 from typing import Dict, Any
 
+def format_timestamp() -> str:
+    """Returns ISO 8601 formatted UTC timestamp with Z suffix."""
+    return datetime.datetime.utcnow().isoformat() + 'Z'
+
+def generate_telemetry_metadata() -> Dict[str, Any]:
+    """Generates standard telemetry metadata for diagnostic results."""
+    return {
+        "timestamp": time.time(),
+        "thread_id": id(time.time()),
+        "version": "1.0.0-DIAGNOSTIC-AWARE"
+    }
+
 def get_system_metrics() -> Dict[str, Any]:
-    """Returns current system resource utilization for diagnostic reporting."""
-    try:
-        process = psutil.Process(os.getpid())
-        return {
-            "memory_usage_mb": process.memory_info().rss / (1024 * 1024),
-            "cpu_percent": process.cpu_percent(interval=None)
-        }
-    except Exception:
-        return {"memory_usage_mb": 0, "cpu_percent": 0}
+    """Retrieves current system performance metrics."""
+    return {
+        "uptime_seconds": time.perf_counter(),
+        "status": "OPERATIONAL"
+    }
