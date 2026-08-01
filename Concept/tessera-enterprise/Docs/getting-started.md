@@ -1,3 +1,9 @@
+<!-- 
+  FILE: Concept/tessera-enterprise/Docs/getting-started.md
+  ROLE: Primary onboarding documentation for the Tessera Enterprise ecosystem.
+  INTEGRATION: Connects to the Enterprise Diagnostic Engine and kernel initialization workflows.
+-->
+
 # Getting Started with Tessera
 
 ## Install
@@ -12,6 +18,17 @@ For image analysis module support:
 pip install tessera-os[image]
 ```
 
+## System Integrity & Pre-flight
+
+Before initializing the kernel, ensure your environment is validated by the Enterprise Diagnostic Engine:
+
+```bash
+# Run the diagnostic suite to verify memory, registry, and environment integrity
+tessera --diagnostics
+```
+
+If the status returns `CRITICAL_FAILURE`, review the diagnostic report generated in the local `/logs` directory before proceeding.
+
 ## First run
 
 ```bash
@@ -24,13 +41,14 @@ tessera "what is the capital of France"
 
 ## What just happened?
 
-1. Tessera's kernel received your request.
-2. It checked the result cache — miss (first run).
-3. It checked the router cache — miss (first run).
-4. It called the LLM router to decide which module should handle the request.
-5. The router picked `general_qa` (the LLM-backed fallback module).
-6. `general_qa` ran, called the LLM, got "Paris", cached the result.
-7. The kernel returned the result.
+1. Tessera's kernel performed a pre-flight diagnostic check.
+2. The kernel received your request.
+3. It checked the result cache — miss (first run).
+4. It checked the router cache — miss (first run).
+5. It called the LLM router to decide which module should handle the request.
+6. The router picked `general_qa` (the LLM-backed fallback module).
+7. `general_qa` ran, called the LLM, got "Paris", cached the result.
+8. The kernel returned the result.
 
 ## Run the same query again
 
@@ -75,3 +93,4 @@ Discovered 3 modules in ./modules:
 - [Writing your own module](writing-modules.md)
 - [Architecture overview](../ARCHITECTURE.md)
 - [Benchmark results](../BENCHMARK.md)
+- [Diagnostic Engine Reference](../BENCHMARKS/diagnostic_engine.py)
