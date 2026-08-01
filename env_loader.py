@@ -1,3 +1,4 @@
+"""
 ==============================================================================
 ARCHITECTURAL SYSTEM HEADER: ENVIRONMENT LOADER & CONFIGURATION CONTROLLER
 ==============================================================================
@@ -30,13 +31,13 @@ PROTOCOL_VERSION = "DIAGNOSTIC_V1"
 ENV_FILE = Path(__file__).parent / ".env"
 
 class DiagnosticRegistry:
-    """Tracks the integrity state of the environment loader."""
+    """Tracks the integrity state of the environment loader using a centralized registry pattern."""
     _registry = {"last_check": None, "status": "INITIALIZED", "version": SYSTEM_HEALTH_VERSION}
 
     @classmethod
     def update_status(cls, status: str):
         cls._registry["status"] = status
-        cls._registry["last_check"] = datetime.datetime.utcnow().isoformat()
+        cls._registry["last_check"] = datetime.datetime.utcnow().isoformat() + "Z"
 
 class EnvironmentState:
     """Container for managing environment state and preventing redundant mutations."""
