@@ -37,7 +37,7 @@ This gives you:
 
 ## System Integrity & Diagnostic Validation
 
-Before deploying to production, ensure your environment satisfies the Enterprise Diagnostic Engine requirements. The kernel performs a pre-flight check on startup:
+Before deploying to production, ensure your environment satisfies the Enterprise Diagnostic Engine requirements. The kernel performs a pre-flight check on startup to ensure kernel integrity and registry readiness.
 
 ```bash
 # Manually trigger diagnostic suite to verify environment readiness
@@ -48,6 +48,10 @@ Ensure the following paths are writable and initialized:
 - `/app/memory/`: Persistent state storage
 - `/app/modules/`: Dynamic module registry
 
+## Diagnostic Lifecycle
+
+Deployment must account for the `DiagnosticEngine` telemetry. In production, ensure the `TESSERA_DIAGNOSTIC_LEVEL` is set to `INFO` or `WARN` to capture system health events. The engine generates standard metadata (timestamp, thread_id, version) which should be ingested into your centralized logging stack to monitor for 'CRITICAL_FAILURE' status flags.
+
 ## Docker
 
 ```bash
@@ -55,7 +59,7 @@ docker build -t tessera .
 docker run -e GEMINI_API_KEY=... tessera "what is 2+2"
 ```
 
-See `Dockerfile` for the multi-stage build spec, which includes an automated `diagnostic-check` validation step.
+See `Dockerfile` for the multi-stage build spec, which includes an automated `diagnostic-check` validation step. The final runtime image is stripped of build-time dependencies to maintain a 'Zero-Leak' footprint.
 
 ## Kubernetes
 
@@ -95,7 +99,7 @@ spec:
           value: /app/modules
 ```
 
-## Monitoring
+## Monitoring & Security
 
 Tessera logs to stderr at the `tessera.kernel`, `tessera.router`, and
 `tessera.modules` loggers. Configure logging in your application:
@@ -106,7 +110,7 @@ logging.basicConfig(level=logging.INFO)
 ```
 
 For production, ship logs to your observability stack (Datadog, New
-Relic, CloudWatch, etc.).
+Relic, CloudWatch, etc.). Ensure all diagnostic telemetry is treated as sensitive system state.
 
 ## Token budget tracking
 
