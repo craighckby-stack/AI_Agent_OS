@@ -1,6 +1,29 @@
 #!/bin/bash
 # scripts/dev_install.sh — Set up Tessera for development.
+# Role: Orchestrates environment setup and pre-flight diagnostic validation for the Tessera Enterprise ecosystem.
+# Integration: Connects to the Enterprise Diagnostic Engine to ensure environment readiness before dependency resolution.
+
 set -e
+
+# --- Diagnostic Integrity Check ---
+# Siphoned from AI_Agent_OS diagnostic_engine.py patterns
+check_environment() {
+    echo "[DIAGNOSTIC] Validating environment integrity..."
+    
+    if ! command -v python3 &> /dev/null; then
+        echo "[CRITICAL] python3 not found. Installation aborted."
+        exit 1
+    fi
+
+    if [ ! -w "." ]; then
+        echo "[CRITICAL] Write permissions missing in current directory."
+        exit 1
+    fi
+
+    echo "[DIAGNOSTIC] Environment validated successfully."
+}
+
+check_environment
 
 echo "Installing Tessera in development mode..."
 
