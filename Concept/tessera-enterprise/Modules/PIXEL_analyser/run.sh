@@ -13,6 +13,14 @@
 
 set -e
 
+# Cleanup trap for Zero-Leak compliance
+cleanup() {
+    exit_code=$?
+    [ $exit_code -ne 0 ] && echo "[pixel_analyzer] Execution failed with code $exit_code" >&2
+    trap - EXIT
+}
+trap cleanup EXIT
+
 MODULE_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # 1. PRE-FLIGHT DIAGNOSTIC HOOK
@@ -56,12 +64,12 @@ CACHE_FILE="$CACHE_DIR/${IMAGE_HASH}.json"
 
 # Cache hit?
 if [ -f "$CACHE_FILE" ]; then
-    echo "[pixel_analyzer cache hit] image=$IMAGE_PATH hash=$IMAGE_HASH"
+    echo "[pixel_analyzer telemetry] status=CACHE_HIT image=$IMAGE_PATH hash=$IMAGE_HASH" >&2
     cat "$CACHE_FILE"
     exit 0
 fi
 
 # Cache miss — run the analysis
-echo "[pixel_analyzer cache miss — running analysis] image=$IMAGE_PATH" >&2
+echo "[pixel_analyzer telemetry] status=CACHE_MISS image=$IMAGE_PATH" >&2
 python3 "$MODULE_DIR/analyze.py" "$IMAGE_PATH" > "$CACHE_FILE"
 cat "$CACHE_FILE"
