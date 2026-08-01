@@ -1,7 +1,7 @@
 <!-- 
   AI AGENT OS: MASTER ARCHITECTURE SPECIFICATION
   Role: Defines the kernel lifecycle, diagnostic protocols, and module integration standards.
-  Connected to: src/lib/diagnostic-engine.ts, env_loader.py, kernel.py, scripts/diagnostic-hook.sh, Concept/consensus-weighting-spec.md
+  Connected to: src/lib/diagnostic-engine.ts, src/lib/zero-leak-sandbox.ts, src/lib/consensus-weighting.ts, env_loader.py, kernel.py, scripts/diagnostic-hook.sh, Concept/consensus-weighting-spec.md
   Status: DIAGNOSTIC-AWARE & ZERO-LEAK COMPLIANT
 -->
 
