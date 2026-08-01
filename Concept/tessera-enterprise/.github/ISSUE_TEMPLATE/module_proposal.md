@@ -10,6 +10,8 @@ assignees: ''
 ARCHITECTURAL TEMPLATE: MODULE PROPOSAL
 Role: Standardizes the ingestion of new computational modules into the Tessera Enterprise ecosystem.
 Integration: Validated by scripts/validate-module-proposal.ts to ensure compliance with Zero-Leak Sandboxing, Dynamic Consensus Weighting, and Diagnostic Engine standards.
+
+Updates: Integrated DiagnosticResult schema and telemetry hooks to align with AI_Agent_OS kernel architecture.
 -->
 
 ## Module Name
@@ -47,14 +49,17 @@ If this module participates in multi-agent consensus, specify its reliability pa
 
 ## Diagnostic Engine Integration
 Every module must expose telemetry and health checks to the core Diagnostic Engine.
-- [ ] **Health Check Registered**: Module implements a diagnostic check function returning a `DiagnosticResult`.
+- [ ] **Health Check Registered**: Module implements a diagnostic check function returning a `DiagnosticResult` (as defined in `src/types/diagnostic-types.ts`).
 - [ ] **Expected Latency Budget**: Maximum allowed execution time (e.g., `< 200ms`).
 - [ ] **Memory Limit**: Maximum memory footprint (e.g., `< 128MB`).
 
 Describe the diagnostic check implementation below:
 ```typescript
+import { DiagnosticResult } from '@/types/diagnostic-types';
+
 export async function performDiagnosticCheck(): Promise<DiagnosticResult> {
   // Validate dependencies, model weights, or external CLI tools
+  return { passed: true, message: 'OK', metadata: {} };
 }
 ```
 
