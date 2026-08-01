@@ -83,7 +83,14 @@ chmod +x modules/my_module/run.sh
 tessera "use my module"
 ```
 
-That's it. Your module is now part of the registry, the router can pick it, and its output gets cached per the `cluster_key` strategy.
+## Diagnostic Integrity
+
+To ensure system-wide reliability, all Tessera modules must expose a `diagnostic_hook.sh` script. The kernel executes this hook prior to module invocation to verify:
+- **Environment Readiness:** Python/dependency availability.
+- **Cache Integrity:** Write permissions for module-specific cache directories.
+- **Resource Availability:** API keys or hardware access (e.g., GPU/Camera) required for execution.
+
+Modules failing the diagnostic hook will be quarantined by the Kernel to prevent runtime failures.
 
 ## Module contract
 
