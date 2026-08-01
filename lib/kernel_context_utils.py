@@ -1,5 +1,14 @@
+"""
+KERNEL CONTEXT UTILITIES
+Role: Provides core diagnostic telemetry, timestamping, and system metric retrieval.
+Integration: Used by kernel_context.py and diagnostic_engine.py to ensure consistent telemetry across the system.
+Dependencies: datetime, time, typing
+"""
+
+from __future__ import annotations
 import datetime
 import time
+import os
 from typing import Dict, Any
 
 def format_timestamp() -> str:
@@ -15,8 +24,10 @@ def generate_telemetry_metadata() -> Dict[str, Any]:
     }
 
 def get_system_metrics() -> Dict[str, Any]:
-    """Retrieves current system performance metrics."""
+    """Retrieves current system performance metrics and operational status."""
     return {
-        "uptime_seconds": time.perf_counter(),
-        "status": "OPERATIONAL"
+        "uptime_seconds": round(time.perf_counter(), 3),
+        "status": "OPERATIONAL",
+        "process_id": os.getpid(),
+        "telemetry": generate_telemetry_metadata()
     }
