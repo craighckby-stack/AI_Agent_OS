@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
 Example: FAQ bot using Tessera.
-
-This example shows a high-cache-hit workload — exactly the kind of
-deployment where Tessera saves the most money.
+Role: Demonstrates high-cache-hit workload efficiency with integrated system diagnostics.
+Integration: Connects to Tessera Kernel and Diagnostic Engine for pre-flight validation.
 
 Run:
     python3 examples/faq_bot.py
@@ -15,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from tessera import Kernel
 from tessera.config import TesseraConfig
-
+from diagnostic_engine import run_system_diagnostics
 
 # Simulate FAQ traffic — 80% of queries are repeats
 FAQ_QUERIES = [
@@ -31,13 +30,18 @@ NOVEL_QUERIES = [
     "what is the meaning of life",
     "explain quantum computing",
     "who won the world series in 2024",
-    # ...
 ] * 1  # 10 novel
 
 ALL_QUERIES = FAQ_QUERIES + NOVEL_QUERIES
 
 
 def main():
+    # Pre-flight diagnostic check
+    diag_report = run_system_diagnostics()
+    if diag_report['status'] != 'HEALTHY':
+        print(f"[CRITICAL] System diagnostic failure: {diag_report['status']}")
+        sys.exit(1)
+
     config = TesseraConfig.from_env()
     kernel = Kernel(config=config)
 
