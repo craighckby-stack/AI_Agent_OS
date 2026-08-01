@@ -2,6 +2,7 @@
 # ARCHITECTURAL HEADER: ENTERPRISE PULL REQUEST TEMPLATE
 # Role: Enforces strict quality gates, architectural compliance, and automated verification.
 # Integration: Aligns PR submissions with the Zero-Leak Sandbox, Dynamic Consensus Weighting, and Diagnostic Engine.
+# Version: 2.0.0-DIAGNOSTIC-AWARE
 -->
 
 ## Description
@@ -27,6 +28,7 @@ This repository enforces strict architectural guarantees. Please verify complian
 - [ ] This PR introduces new modules, components, or critical paths.
   - *If yes, have you registered corresponding health checks in the Diagnostic Engine?*
 - [ ] I have run the local diagnostic suite and verified that all system checks pass cleanly.
+- [ ] I have implemented the `DiagnosticResult` interface for all new exported functions.
 
 ## Type of Change
 
@@ -50,6 +52,10 @@ Paste the output of the Diagnostic Engine validation run below:
 ```json
 {
   "status": "HEALTHY",
+  "telemetry": {
+    "version": "1.0.0-DIAGNOSTIC-AWARE",
+    "timestamp": "ISO-8601-UTC"
+  },
   "checks": {
     "zero_leak_sandbox": true,
     "consensus_weighting": true,
