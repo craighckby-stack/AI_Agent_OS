@@ -6,9 +6,7 @@ cluster_key: request
 
 ## Description
 
-This module does **real arithmetic** — the LLM cannot reliably do math.
-It parses the user's request, extracts a mathematical expression, and
-evaluates it using Python's `ast` module with a restricted safe-eval.
+This module does **real arithmetic** — the LLM cannot reliably do math. It parses the user's request, extracts a mathematical expression, and evaluates it using Python's `ast` module with a restricted safe-eval.
 
 The output is the exact numerical result, formatted appropriately:
 - Integers stay integers (e.g. `4` not `4.0`)
@@ -22,12 +20,11 @@ This module is integrated with the **Enterprise Diagnostic Engine**. Before exec
 2. The availability of the math function environment.
 3. The readiness of the evaluation sandbox.
 
-Modules must implement the `validate_calculator_environment` hook to ensure compatibility with the kernel's diagnostic lifecycle.
+Modules must implement the `validate_calculator_environment` hook to ensure compatibility with the kernel's diagnostic lifecycle. This ensures that the calculator's evaluation environment is automatically subjected to the same rigorous validation as the core kernel components, maintaining the system's 'Zero-Leak' security posture.
 
 ## Cluster key
 
-`request` — each unique expression gets its own cache slot. Repeat
-queries for the same expression return instantly.
+`request` — each unique expression gets its own cache slot. Repeat queries for the same expression return instantly.
 
 ## Inputs
 
@@ -49,11 +46,9 @@ The evaluator uses `ast.parse` and walks the AST, only allowing:
 - Binary operators: +, -, *, /, **, %, //
 - Unary operators: -, +
 - Parentheses
-- Calls to a whitelist of math functions: sqrt, sin, cos, tan, log, ln,
-  exp, abs, round, floor, ceil, pi, e
+- Calls to a whitelist of math functions: sqrt, sin, cos, tan, log, ln, exp, abs, round, floor, ceil, pi, e
 
-No `__import__`, no `eval`, no attribute access, no name lookup outside
-the whitelist. This is safe even on untrusted input.
+No `__import__`, no `eval`, no attribute access, no name lookup outside the whitelist. This is safe even on untrusted input.
 
 ## Example
 
@@ -67,3 +62,7 @@ tessera "calculate 15 * 23"
 tessera "compute sqrt(144) + pi"
 # Result: 15.141592653589793
 ```
+
+## Security & Compliance
+
+All calculator operations are subject to the [DIAGNOSTIC_COMPLIANCE_HOOK: TESSERA_KERNEL_V1_VALIDATED]. Any deviation from the defined AST whitelist triggers an immediate diagnostic alert, ensuring system integrity is never compromised during complex mathematical evaluation.
