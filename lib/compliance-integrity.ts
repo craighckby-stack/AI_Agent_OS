@@ -1,25 +1,17 @@
 /**
- * COMPLIANCE INTEGRITY HOOK
- * Role: Provides runtime validation hooks for repository compliance.
- * Integration: Called by docs/COMPLIANCE_MANIFEST.md and the diagnostic engine.
+ * COMPLIANCE INTEGRITY UTILITY
+ * Role: Provides programmatic verification for the .env configuration manifest.
+ * Integration: Used by diagnostic_engine.py to ensure environment schema compliance.
  */
 
-export interface ComplianceReport {
-  status: 'HEALTHY' | 'CRITICAL_FAILURE' | 'ERROR';
-  timestamp: string;
-  version: string;
+export interface ComplianceManifestSchema {
+  protocolVersion: string;
+  lastValidated: string;
+  integrityStatus: 'PENDING_VALIDATION' | 'VALIDATED' | 'CRITICAL_FAILURE';
+  requiredChecks: string[];
 }
 
-export async function runComplianceDiagnostics(): Promise<ComplianceReport> {
-  // Logic to verify repository compliance state against manifest requirements
-  return {
-    status: 'HEALTHY',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0-DIAGNOSTIC-AWARE'
-  };
-}
-
-export function validate_compliance_state(): boolean {
-  // Internal validation logic for compliance state
-  return true;
-}
+export const validateEnvIntegrity = (env: Record<string, string>): boolean => {
+  // Logic to verify required environment variables against the manifest
+  return !!env.MEMORY_PATH && !!env.STRICT_MODE;
+};
