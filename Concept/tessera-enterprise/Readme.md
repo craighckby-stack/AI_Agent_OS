@@ -1,5 +1,11 @@
 # Tessera Enterprise
 
+<!-- 
+  FILE: Concept/tessera-enterprise/Readme.md
+  ROLE: Central documentation for the Tessera Enterprise framework.
+  INTEGRATION: Links to the Diagnostic Engine and Module Registry patterns.
+-->
+
 ## Overview
 Tessera Enterprise is a modular, high-integrity framework designed for scalable AI agent orchestration. It leverages a decentralized module registry and a centralized diagnostic engine to ensure system-wide reliability and performance.
 
@@ -14,12 +20,17 @@ All Tessera modules MUST expose a `diagnostic_hook.sh` (or equivalent interface)
 2. **Cache Integrity**: Ensuring read/write permissions for persistent memory layers.
 3. **Dependency Checks**: Pre-flight validation of external libraries and API keys.
 
-### Implementation Standard
-Modules must implement the following diagnostic flow:
-```bash
-# Example diagnostic_hook.sh
-./scripts/validate_env.sh && ./scripts/check_cache.sh
-```
+### Diagnostic Lifecycle
+Modules follow a multi-stage diagnostic workflow:
+- **Pre-Flight**: Environment and dependency verification via `diagnostic_hook.sh`.
+- **Runtime Telemetry**: Execution metrics captured via `diagnostic_engine_utils.py`.
+- **Health Reporting**: Status aggregation via `diagnostic_engine.py`.
+
+### Security & Compliance
+To maintain 'Zero-Leak' standards, all modules must implement:
+- **Isolated Sandboxing**: Execution within defined memory boundaries.
+- **Cleanup Traps**: Mandatory teardown of temporary artifacts on failure.
+- **Telemetry Auditing**: All diagnostic results are logged to the kernel's central telemetry stream.
 
 ## Integration
 This repository is designed to be compatible with the `AI_Agent_OS` kernel patterns, supporting multi-provider LLM fallbacks and local-first execution environments. For detailed implementation, refer to the `Modules/` directory.
