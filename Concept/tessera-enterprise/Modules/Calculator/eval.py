@@ -2,8 +2,10 @@
 """
 calculator/eval.py — Safe mathematical expression evaluator.
 
-Extracts a math expression from a natural-language request and evaluates
+Role: Extracts a math expression from a natural-language request and evaluates
 it deterministically using Python's ast module.
+
+Integration: Connects to the Enterprise Diagnostic Engine for pre-flight validation.
 
 Safety: only numbers, binary/unary operators, parentheses, and a
 whitelist of math functions are allowed. No imports, no attribute
@@ -14,6 +16,8 @@ import math
 import re
 import sys
 
+# Import diagnostic hook for pre-flight validation
+from diagnostic_hook import run_module_diagnostics
 
 # Whitelisted names (constants and functions)
 SAFE_NAMES = {
@@ -94,62 +98,45 @@ def safe_eval(node):
 
 
 def extract_expression(request: str) -> str:
-    """Extract a math expression from a natural-language request.
-
-    Strips common prefixes like 'what is', 'calculate', 'compute',
-    'evaluate', 'solve'. Returns the remaining text.
-    """
-    # Lowercase for prefix matching
+    """Extract a math expression from a natural-language request."""
     lowered = request.lower().strip()
-
-    # Strip common prefixes
     prefixes = [
-        "what is ",
-        "what's ",
-        "calculate ",
-        "compute ",
-        "evaluate ",
-        "solve ",
-        "what is the value of ",
-        "what is the result of ",
+        "what is ", "what's ", "calculate ", "compute ",
+        "evaluate ", "solve ", "what is the value of ", "what is the result of ",
     ]
     for prefix in prefixes:
         if lowered.startswith(prefix):
             lowered = lowered[len(prefix):]
             break
 
-    # Strip trailing punctuation
     lowered = lowered.rstrip("?.!")
-
-    # If there's still natural language, try to extract just the math part.
-    # Match anything that looks like an expression: digits, operators,
-    # parens, function names, decimal points.
     expr_match = re.search(
         r"([\d\w\s\+\-\*/\(\)\.\%\^,]+(?:\*\*|//|sqrt|sin|cos|tan|log|ln|exp|abs|round|floor|ceil|pow|min|max|pi|e|tau)[\d\w\s\+\-\*/\(\)\.\%\^,]*)",
         lowered,
     )
     if expr_match:
         candidate = expr_match.group(1).strip()
-        # Replace ^ with ** for convenience
-        candidate = candidate.replace("^", "**")
-        return candidate
+        return candidate.replace("^", "**")
 
-    # Fall back to the whole stripped request
     return lowered.replace("^", "**")
 
 
 def format_result(value) -> str:
     """Format the numerical result appropriately."""
     if isinstance(value, float):
-        # If it's a whole number, show as int
         if value.is_integer():
             return str(int(value))
-        # Otherwise show full precision
         return repr(value)
     return str(value)
 
 
 def main():
+    # Pre-flight diagnostic check
+    diag_report = run_module_diagnostics()
+    if diag_report.get('status') != 'HEALTHY':
+        print(f"Diagnostic Failure: {diag_report}", file=sys.stderr)
+        sys.exit(1)
+
     if len(sys.argv) < 2:
         print("Usage: python3 eval.py '<request>'", file=sys.stderr)
         sys.exit(1)
