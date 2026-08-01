@@ -1,40 +1,35 @@
 #!/usr/bin/env python3
 """
-Tessera — Cost Model Benchmark
-================================
-
-Measures token costs for first-encounter vs repeat queries, then projects
+COST MODEL BENCHMARK
+Role: Measures token costs for first-encounter vs repeat queries, then projects
 total cost at workload scales. Integrates with the Enterprise Diagnostic Engine
 to ensure system integrity before execution.
 
-Run: python3 -m benchmarks.cost_model
+Integration: Uses diagnostic_engine for pre-flight health checks and telemetry.
 """
-import json
-import os
 import sys
-import time
 from pathlib import Path
 
-# Allow running as a script or as a module
+# Ensure system path integrity
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from tessera.config import TesseraConfig
 from tessera.kernel import Kernel
 from benchmarks.diagnostic_engine import run_system_diagnostics
 
+# Pricing constants for cost modeling
 VENDOR_PRICING = {
     "Gemini 1.5 Flash": {"input": 0.075, "output": 0.30},
     "GPT-4o-mini":      {"input": 0.150, "output": 0.60},
     "DeepSeek Chat":    {"input": 0.140, "output": 0.28},
 }
 
-
-def compute_cost(tokens_in, tokens_out):
+def compute_cost(tokens_in: int, tokens_out: int) -> dict[str, float]:
+    """Calculates USD cost for given token counts across supported vendors."""
     return {
         v: round(tokens_in / 1e6 * r["input"] + tokens_out / 1e6 * r["output"], 6)
         for v, r in VENDOR_PRICING.items()
     }
-
 
 def main():
     print("=" * 78)
@@ -50,12 +45,9 @@ def main():
     config = TesseraConfig.from_env()
     kernel = Kernel(config=config)
 
-    # Measure: first encounter (cache miss) vs repeat (cache hit)
     test_query = "what is the capital of France"
-
     print(f"\nTest query: {test_query!r}")
 
-    # Clear cache for first-encounter measurement
     kernel.cache.clear()
 
     print("\n[1] First encounter (cache miss):")
@@ -75,16 +67,12 @@ def main():
         print(f"    elapsed={r2.elapsed_s * 1000:.0f}ms cache_hit={r2.cache_hit}")
     else:
         print("\n[2] Repeat encounter: skipped (no first-encounter data)")
-        print("    (Set GEMINI_API_KEY or OPENAI_API_KEY to run the live test.)")
 
     # Projection at scale
     print("\n" + "=" * 78)
     print("  COST PROJECTION")
     print("=" * 78)
-    print(f"\nVendor pricing (USD per 1M tokens):")
-    for v, r in VENDOR_PRICING.items():
-        print(f"  {v:20s}  input=${r['input']:.3f}   output=${r['output']:.3f}")
-
+    
     patterns = [
         ("Heavy repeat (FAQ bot)",   0.20, 0.80),
         ("Mixed (support assistant)",0.60, 0.40),
@@ -92,7 +80,6 @@ def main():
     ]
     scales = [100, 1000, 10000]
 
-    # Use estimated token costs
     first_tokens_in, first_tokens_out = 155, 38
     repeat_tokens_in, repeat_tokens_out = 0, 0
     baseline_tokens_in, baseline_tokens_out = 31, 33
@@ -105,30 +92,23 @@ def main():
         for scale in scales:
             n_first = int(scale * first_pct)
             n_repeat = scale - n_first
-
             aos_in = n_first * first_tokens_in + n_repeat * repeat_tokens_in
             aos_out = n_first * first_tokens_out + n_repeat * repeat_tokens_out
             base_in = scale * baseline_tokens_in
             base_out = scale * baseline_tokens_out
-
             aos_cost = compute_cost(aos_in, aos_out)
             base_cost = compute_cost(base_in, base_out)
 
             print(f"\n  Scale: {scale:,} queries  ({n_first:,} first + {n_repeat:,} repeat)")
             print(f"    {'Metric':<25} {'Baseline':>14} {'Tessera':>14} {'Savings':>14} {'%':>8}")
             print(f"    {'-' * 76}")
-            for label, b, a in [
-                ("Input tokens", base_in, aos_in),
-                ("Output tokens", base_out, aos_out),
-                ("Total tokens", base_in + base_out, aos_in + aos_out),
-            ]:
+            for label, b, a in [("Input tokens", base_in, aos_in), ("Output tokens", base_out, aos_out), ("Total tokens", base_in + base_out, aos_in + aos_out)]:
                 pct = (b - a) / b * 100 if b > 0 else 0
                 print(f"    {label:<25} {b:>14,} {a:>14,} {b - a:>14,} {pct:>7.1f}%")
             for vendor in VENDOR_PRICING:
                 bc, ac = base_cost[vendor], aos_cost[vendor]
                 pct = (bc - ac) / bc * 100 if bc > 0 else 0
                 print(f"    {'$ ' + vendor:<25} {bc:>14.4f} {ac:>14.4f} {bc - ac:>14.4f} {pct:>7.1f}%")
-
 
 if __name__ == "__main__":
     main()
