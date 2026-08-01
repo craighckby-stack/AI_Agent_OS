@@ -4,15 +4,19 @@ Tessera cache interface and FileCache implementation.
 The Cache interface is the open-core boundary. The default FileCache is
 zero-dependency and ships free. RedisCache (distributed) lives in the
 enterprise package.
+
+This module is integrated with the Tessera Enterprise Diagnostic Engine.
 """
 
 from __future__ import annotations
 
 import json
 import threading
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional, Protocol
 
+from .cache_diagnostics import CacheDiagnostic
 
 class Cache(Protocol):
     """Cache interface. Any implementation must satisfy this protocol."""
@@ -46,6 +50,7 @@ class FileCache:
         self.dir = Path(dir_path)
         self.dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
+        self.diagnostic = CacheDiagnostic(self.dir)
 
     def _path_for(self, key: str) -> Path:
         # Sanitize key for filesystem safety
@@ -57,7 +62,13 @@ class FileCache:
         if not path.exists():
             return None
         try:
-            return json.loads(path.read_text())
+            data = json.loads(path.read_text())
+            # Check TTL
+            expires_at = data.get("_expires_at")
+            if expires_at and time.time() > expires_at:
+                self.delete(key)
+                return None
+            return data
         except (json.JSONDecodeError, OSError):
             # Corrupted cache file — treat as miss
             return None
@@ -67,7 +78,6 @@ class FileCache:
         with self._lock:
             entry = {**value}
             if ttl > 0:
-                import time
                 entry["_expires_at"] = time.time() + ttl
             path.write_text(json.dumps(entry, indent=2))
 
@@ -86,3 +96,7 @@ class FileCache:
                     path.unlink()
                 except OSError:
                     pass
+
+    def verify_integrity(self) -> Dict[str, Any]:
+        """Executes diagnostic check on the cache storage."""
+        return self.diagnostic.run_check()
