@@ -3,7 +3,7 @@
 ARCHITECTURAL SYSTEM HEADER: EVIDENCE-BASED MEMORY SPECIFICATION
 ==============================================================================
 Role: Memory Subsystem Specification & Governance Controller
-System Version: v1.0.0-DIAGNOSTIC-AWARE
+System Version: v1.1.0-EVIDENTIAL-INTEGRITY
 System Context: This document defines the "Memory as Evidence, Not Truth" paradigm
                 used by the Local Agent Kernel. It details the flat-file storage
                 schema, confidence decay scoring, TTL validation, dynamic hash auditing,
@@ -12,6 +12,8 @@ Integrations:
   - kernel.py: Implements the evidence verification logic.
   - modules/: Source of truth for module execution.
   - src/utils/memory_verifier.py: Core evidential memory verification engine.
+  - src/utils/memory_decay_engine.py: Mathematical decay computation (Siphoned).
+  - src/lib/memory_lifecycle_manager.py: State transition controller.
   - diagnostic_engine.py: System health monitoring and memory persistence probes.
 ==============================================================================
 -->
@@ -32,7 +34,7 @@ In traditional caching systems, a key-value hit is returned blindly based on key
    $$
    C(t) = C_0 \times 0.5^{\left(\frac{\Delta t}{\tau}\right)}
    $$
-   Where $C_0$ is the initial verification score, $\Delta t$ is elapsed time, and $\tau$ is the entry's half-life parameter.
+   Where $C_0$ is the initial verification score, $\Delta t$ is elapsed time, and $\tau$ is the entry's half-life parameter. This is programmatically enforced by `src/utils/memory_decay_engine.py`.
 
 2. **Temporal Validity (TTL):** For time-sensitive or volatile modules, the kernel evaluates the `expiry` unix timestamp. If the current epoch time exceeds `expiry`, the entry is flagged as stale, purged, and re-executed.
 
@@ -63,7 +65,7 @@ To maximize performance while preserving absolute local portability (Termux, Col
     "expiry": 1774958400.0,
     "dependency_hash": "a3f8b910e5218d6c71c1b12d7d8e90ff8a90123456789abcdef0123456789abc",
     "dependencies": ["modules/scanner.py", "config/rules.json"],
-    "version": "1.0.0-DIAGNOSTIC-AWARE"
+    "version": "1.1.0-EVIDENTIAL-INTEGRITY"
   }
 }
 ```
@@ -73,6 +75,19 @@ To maximize performance while preserving absolute local portability (Termux, Col
 - **Atomic Write Protocol:** To avoid file corruption during concurrent process execution or ungraceful shutdown, the kernel writes memory updates to a temporary snapshot file (`memory.json.tmp`) and executes an atomic POSIX file rename (`os.replace`).
 - **Schema Version Migration:** The `version` metadata field guarantees backward compatibility. Older memory files are updated on-the-fly during boot diagnostic runs.
 - **Zero-Leak Isolation:** Module entries are key-namespaced (`tenant_id:module_name`) preventing cross-agent data exposure.
+
+---
+
+## 🔄 Memory State Transition Matrix
+
+Memory entries transition through the following states, managed by `src/lib/memory_lifecycle_manager.py`:
+
+| Current State | Trigger | Next State | Action |
+| :--- | :--- | :--- | :--- |
+| **EVIDENTIAL** | Decay < 90% | **STALE** | Flag for background refresh |
+| **EVIDENTIAL** | Hash Mismatch | **INVALIDATED** | Immediate isolation; purge entry |
+| **STALE** | Expiry Reached | **PURGED** | Remove from L2; re-execute module |
+| **INVALIDATED** | Re-execution | **EVIDENTIAL** | Update with new hash and 100% confidence |
 
 ---
 
@@ -113,3 +128,21 @@ This specification is bound directly to the system's core diagnostic engine (`di
 - **Diagnostic Probe:** The `memory_persistence` health probe executes `verifier.verify_all()` during every deep check.
 - **Self-Healing Capability:** If `memory.json` is corrupted or malformed, the memory verifier isolates the malformed entry and initializes a pristine structure without crashing the kernel execution loop.
 - **Fail-Fast Mandate:** If an essential module returns an unverified memory state below `90%` confidence, execution bypasses cache and enforces fresh, sandbox-validated execution.
+
+### Memory Integrity Manifest (Programmatic Interface)
+```json
+{
+  "manifest_id": "MEM-SPEC-V1",
+  "governance_rules": {
+    "min_confidence": 0.90,
+    "default_half_life": 86400,
+    "enforce_atomic_writes": true,
+    "hash_algorithm": "sha256"
+  },
+  "diagnostic_hooks": [
+    "memory_persistence",
+    "evidential_decay_check",
+    "dependency_integrity_audit"
+  ]
+}
+```
