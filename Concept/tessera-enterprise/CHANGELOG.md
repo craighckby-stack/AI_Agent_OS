@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented 'Zero-Leak Sandbox' patterns in CI/CD and repository configuration.
 - Added automated release validation via `scripts/validate_release.py`.
 - Hardened `.gitignore` to prevent PII/state leakage in diagnostic telemetry.
+- **Diagnostic Integrity:** Formalized diagnostic telemetry hooks and registry-based health monitoring across all core modules.
 
 ### Changed
 - Updated `ARCHITECTURE.md` to include 'System Integrity & Diagnostics' and 'Security & Compliance' sections.
