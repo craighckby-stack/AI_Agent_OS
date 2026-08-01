@@ -1,49 +1,40 @@
 /**
- * DIAGNOSTIC UTILITIES
- * Role: Provides low-level validation logic and integrity hooks for the system diagnostic engine.
- * Integration: Serves as the foundational layer for 'lib/diagnostic-engine.ts' and kernel health monitoring.
- * 
- * This module implements the 'Diagnostic Integrity Hook' pattern, ensuring that all system
- * components are verified via structured, type-safe responses.
+ * @file diagnostic-utils.ts
+ * @description Helper utilities for diagnostic execution formatting, status telemetry, and metric computation.
  */
 
-import { registerDiagnosticCheck } from './diagnostic-registry';
+import { DiagnosticSummary } from './diagnostic-types';
 
-export interface DiagnosticResult {
-  passed: boolean;
-  message: string;
-  timestamp: string;
+export function formatTimestamp(): string {
+  return new Date().toISOString();
 }
 
-/**
- * Performs a deep integrity check for a specific system component.
- * Implements the core validation logic for the diagnostic engine.
- * 
- * @param checkType - The identifier of the component to validate.
- * @returns {Promise<DiagnosticResult>} The result of the integrity check.
- */
-export const performDeepCheck = async (checkType: string): Promise<DiagnosticResult> => {
+export function summarizeDiagnosticResults(checks: Record<string, boolean>): DiagnosticSummary {
+  const total = Object.keys(checks).length;
+  const passed = Object.values(checks).filter(Boolean).length;
+  const failed = total - passed;
+  const isHealthy = total > 0 && failed === 0;
+  const passRate = total > 0 ? Math.round((passed / total) * 10000) / 100 : 0.0;
+
+  return {
+    total,
+    passed,
+    failed,
+    isHealthy,
+    passRate,
+  };
+}
+
+export async function executeCheckWithTelemetry(
+  checkFn: () => Promise<boolean>
+): Promise<{ passed: boolean; durationMs: number }> {
+  const startTime = performance.now();
   try {
-    // Logic to interface with environment or file system
-    const isPassed = true; // Placeholder for actual validation logic
-    const result: DiagnosticResult = {
-      passed: isPassed,
-      message: `Check ${checkType} completed successfully.`,
-      timestamp: new Date().toISOString()
-    };
-
-    // Register the result in the central registry for historical tracking
-    await registerDiagnosticCheck(checkType, result);
-
-    return result;
-  } catch (e) {
-    const errorResult: DiagnosticResult = {
-      passed: false,
-      message: `Check ${checkType} failed: ${e instanceof Error ? e.message : String(e)}`,
-      timestamp: new Date().toISOString()
-    };
-    
-    await registerDiagnosticCheck(checkType, errorResult);
-    return errorResult;
+    const passed = await checkFn();
+    const durationMs = performance.now() - startTime;
+    return { passed, durationMs: Math.round(durationMs * 1000) / 1000 };
+  } catch {
+    const durationMs = performance.now() - startTime;
+    return { passed: false, durationMs: Math.round(durationMs * 1000) / 1000 };
   }
-};
+}
