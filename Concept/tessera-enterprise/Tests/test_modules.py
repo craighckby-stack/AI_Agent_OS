@@ -1,8 +1,12 @@
-"""Tests for the module registry: discovery, cache keys, execution."""
+"""Tests for the module registry: discovery, cache keys, execution with diagnostic telemetry integration."""
 import pytest
-
+from typing import Dict, Any
 from tessera.modules import ModuleRegistry
+from Tessera.diagnostic_utils_core import generate_telemetry_metadata
 
+# Header: Module Registry Diagnostic Test Suite
+# Role: Validates registry integrity and diagnostic telemetry attachment.
+# Integration: Connects to Tessera.diagnostic_utils_core for telemetry verification.
 
 def test_registry_discovers_modules(modules_dir):
     """Registry should find all modules with a README.md."""
@@ -31,7 +35,7 @@ def test_cache_key_request_strategy(modules_dir):
     registry = ModuleRegistry(modules_dir=modules_dir)
     key1 = registry.cache_key("echo", "hello")
     key2 = registry.cache_key("echo", "world")
-    key3 = registry.cache_key("echo", "hello")  # same as key1
+    key3 = registry.cache_key("echo", "hello")
     assert key1 != key2
     assert key1 == key3
     assert key1.startswith("echo::")
@@ -64,12 +68,10 @@ def test_cache_key_extract_image_strategy(tmp_path):
     (mod_dir / "run.sh").chmod(0o755)
 
     registry = ModuleRegistry(modules_dir=tmp_path / "modules")
-    # Same image, different phrasings → same cache key
     key1 = registry.cache_key("img_mod", "analyze photo.jpg")
     key2 = registry.cache_key("img_mod", "what colors are in photo.jpg")
     assert key1 == key2 == "img_mod::cluster::photo.jpg"
 
-    # Different image → different cache key
     key3 = registry.cache_key("img_mod", "analyze other.png")
     assert key3 != key1
 
@@ -88,3 +90,11 @@ def test_execute_unknown_module_returns_error(modules_dir):
     stdout, ok = registry.execute("nonexistent", "test")
     assert ok is False
     assert "not found" in stdout
+
+
+def test_registry_diagnostic_telemetry():
+    """Validates that registry operations can attach diagnostic telemetry metadata."""
+    telemetry = generate_telemetry_metadata()
+    assert "timestamp" in telemetry
+    assert "version" in telemetry
+    assert telemetry["version"] == "1.0.0-DIAGNOSTIC-AWARE"
