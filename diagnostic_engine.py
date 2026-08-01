@@ -2,7 +2,7 @@
 ARCHITECTURAL SYSTEM DIAGNOSTIC ENGINE
 Role: Validates kernel integrity, memory persistence layers, and module registry status.
 Integration: Connects to kernel.py and diagnostic_context.py for real-time system health monitoring and diagnostic reporting.
-Dependencies: diagnostic_registry, diagnostic_context, diagnostic_engine_utils, diagnostic_utils_core
+Dependencies: diagnostic_registry, diagnostic_context, diagnostic_engine_utils, diagnostic_utils_core, diagnostic_gatekeeper
 
 This engine acts as the primary gatekeeper for system health, ensuring all 
 critical dependencies are verified before kernel execution cycles.
@@ -16,13 +16,15 @@ from diagnostic_registry import REGISTERED_CHECKS
 from diagnostic_context import DiagnosticContext
 from diagnostic_engine_utils import format_timestamp, summarize_diagnostic_results, execute_check_with_telemetry
 from diagnostic_utils_core import generate_telemetry_metadata
+from diagnostic_gatekeeper import DiagnosticGatekeeper
 
 # Configure diagnostic logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DiagnosticEngine")
 
-# Initialize global diagnostic context
+# Initialize global diagnostic context and gatekeeper
 ctx = DiagnosticContext()
+gatekeeper = DiagnosticGatekeeper()
 
 
 def perform_deep_check(check_type: str) -> Dict[str, Any]:
@@ -56,10 +58,7 @@ def run_system_diagnostics() -> Dict[str, Any]:
         default_checks: List[str] = ['env_loader', 'memory_persistence', 'module_registry']
         registered_keys: List[str] = list(REGISTERED_CHECKS.keys())
         
-        checks: List[str] = []
-        for check in default_checks + registered_keys:
-            if check not in checks:
-                checks.append(check)
+        checks: List[str] = sorted(list(set(default_checks + registered_keys)))
         
         results_raw = {check: perform_deep_check(check) for check in checks}
         results_bool = {k: v["passed"] for k, v in results_raw.items()}
@@ -75,6 +74,8 @@ def run_system_diagnostics() -> Dict[str, Any]:
             'telemetry': generate_telemetry_metadata()
         }
         
+        # Enforce gatekeeper policy
+        gatekeeper.evaluate_report(report)
         ctx.update_status(report['status'])
         
         if not is_healthy:
