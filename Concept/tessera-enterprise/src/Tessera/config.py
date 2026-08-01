@@ -4,14 +4,17 @@ Tessera configuration.
 Settings are loaded from environment variables (with .env file support
 optional — Tessera does not depend on python-dotenv by default). All
 settings have sensible defaults so Tessera runs out of the box.
+
+This module integrates with the Enterprise Diagnostic Engine to ensure
+runtime environment integrity.
 """
 
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
-from pathlib import Path
+from dataclasses import dataclass
 from typing import Optional
+from .config_validator import validate_tessera_environment
 
 
 @dataclass
@@ -42,12 +45,13 @@ class TesseraConfig:
     # ── Diagnostics ────────────────────────────────────────────────────
     strict_mode: bool = True
     debug_mode: bool = False
+    diagnostic_mode: bool = True
 
     @classmethod
     def from_env(cls, env: Optional[dict] = None) -> "TesseraConfig":
         """Load configuration from environment variables (or a dict)."""
         e = env or os.environ
-        return cls(
+        config = cls(
             gemini_api_key=e.get("GEMINI_API_KEY", ""),
             openai_api_key=e.get("OPENAI_API_KEY", ""),
             deepseek_api_key=e.get("DEEPSEEK_API_KEY", ""),
@@ -63,4 +67,10 @@ class TesseraConfig:
             default_fallback_module=e.get("TESSERA_DEFAULT_FALLBACK_MODULE", "general_qa"),
             strict_mode=e.get("STRICT_MODE", "true").lower() in ("true", "1", "yes"),
             debug_mode=e.get("DEBUG_MODE", "false").lower() in ("true", "1", "yes"),
+            diagnostic_mode=e.get("TESSERA_DIAGNOSTIC_MODE", "true").lower() in ("true", "1", "yes"),
         )
+        
+        if config.diagnostic_mode:
+            validate_tessera_environment(config)
+            
+        return config
