@@ -42,6 +42,13 @@ purpose: <one line>      # Required. Used by the LLM router to pick this module.
 cluster_key: <strategy>  # Optional. Defaults to 'request'. See below.
 ```
 
+## Diagnostic Integrity (Enterprise Requirement)
+
+Modules integrated into the Enterprise environment are subject to the **Enterprise Diagnostic Engine** pre-flight checks. Ensure your module:
+- Does not block execution during the `diagnostic-check` phase.
+- Returns a non-zero exit code if critical dependencies (e.g., local data files, API keys) are missing.
+- Logs diagnostic telemetry to `stderr` to avoid polluting the kernel cache.
+
 ## Cluster key strategies
 
 This is the most important decision when writing a module. It controls
