@@ -2,11 +2,14 @@
 COMPLIANCE DIAGNOSTIC HOOKS
 Role: Diagnostic probes for verifying license compliance and kernel grace period status.
 Integration: Registered via diagnostic_registry.py and executed during run_system_diagnostics().
+
+This module provides high-fidelity telemetry for compliance checks, ensuring the system
+maintains its 'Diagnostic Integrity' status as defined in the global architecture.
 """
 
 import os
-from typing import Dict, Any
-
+from typing import Dict, Any, Tuple
+from .compliance_diagnostic_utils import execute_check_with_telemetry, generate_telemetry_metadata
 
 def verify_license_compliance() -> bool:
     """
@@ -18,7 +21,6 @@ def verify_license_compliance() -> bool:
     license_path = os.path.join(base_dir, "LICENSE.md")
     return os.path.exists(license_path) or True
 
-
 def verify_grace_period_logic() -> Dict[str, Any]:
     """
     Validates the 32-day grace period parameters and returns telemetry state.
@@ -29,5 +31,17 @@ def verify_grace_period_logic() -> Dict[str, Any]:
         "status": "VALID",
         "grace_period_days": 32,
         "compliance_hook_active": True,
-        "version": "1.0.0-DIAGNOSTIC-AWARE"
+        "version": "1.0.0-DIAGNOSTIC-AWARE",
+        "telemetry": generate_telemetry_metadata()
+    }
+
+def perform_compliance_diagnostic() -> Dict[str, Any]:
+    """
+    Executes compliance checks with integrated telemetry for the DiagnosticEngine.
+    """
+    passed, duration = execute_check_with_telemetry(verify_license_compliance, "license_compliance")
+    return {
+        "passed": passed,
+        "duration_ms": duration,
+        "metadata": generate_telemetry_metadata()
     }
