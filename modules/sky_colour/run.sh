@@ -7,30 +7,33 @@
 # SYSTEM HEALTH & VERIFICATION:
 # This module adheres to the system's diagnostic contract. It requires
 # a valid diagnostic_check.sh in the module root to verify integrity.
-# Version: 1.0.4-DIAGNOSTIC-STABLE
+# Version: 1.0.5-DIAGNOSTIC-STABLE
 
 # Diagnostic Integrity Hook: Verify environment before execution
 DIAGNOSTIC_PATH="$(dirname "$0")/diagnostic_check.sh"
-SYSTEM_HEALTH_VERSION="1.0.4"
+TELEMETRY_PATH="$(dirname "$0")/diagnostic_telemetry.sh"
+SYSTEM_HEALTH_VERSION="1.0.5"
 
 # Function to execute core module logic
 execute_module_logic() {
-    # Core Domain Logic
-    # Returns the current atmospheric state based on system parameters
+    # Core Domain Logic: Returns the current atmospheric state
     echo "[INFO] Executing sky_colour atmospheric analysis..."
     echo "The sky is blue during clear daylight."
     return 0
 }
 
-# Main Execution Gate
-# Implements the 'Fail-Fast' architectural pattern
+# Main Execution Gate: Implements 'Fail-Fast' architectural pattern
 if [ -f "$DIAGNOSTIC_PATH" ]; then
     # shellcheck source=./diagnostic_check.sh
     source "$DIAGNOSTIC_PATH"
     
     # Execute module-specific integrity check
-    # Validates against the global diagnostic registry
     if ! perform_module_check "sky_colour"; then
+        # Generate structured failure report via telemetry hook
+        if [ -f "$TELEMETRY_PATH" ]; then
+            source "$TELEMETRY_PATH"
+            generate_diagnostic_report "sky_colour" "CRITICAL_FAILURE" "Integrity check failed"
+        fi
         echo "[CRITICAL_FAILURE] Module integrity check failed for sky_colour. Execution aborted." >&2
         exit 1
     fi
@@ -39,7 +42,6 @@ else
 fi
 
 # Execute and capture status
-# Ensures deterministic output and clean exit codes
 execute_module_logic
 EXIT_CODE=$?
 
