@@ -1,9 +1,13 @@
 """
 Tessera CLI — command-line entry point.
 
+Role: Orchestrates kernel initialization, module discovery, and diagnostic verification.
+Integration: Interfaces with Tessera.kernel and Tessera.diagnostic_engine for system lifecycle management.
+
 Usage:
     tessera "<request>"
     tessera --list-modules
+    tessera --diagnostics
     tessera --version
 """
 
@@ -11,10 +15,12 @@ from __future__ import annotations
 
 import argparse
 import sys
+import json
 
 from tessera import __version__
 from tessera.config import TesseraConfig
 from tessera.kernel import Kernel
+from tessera.diagnostic_engine import run_system_diagnostics
 
 
 def main() -> int:
@@ -24,6 +30,7 @@ def main() -> int:
     )
     parser.add_argument("request", nargs="*", help="The request to process")
     parser.add_argument("--list-modules", action="store_true", help="List discovered modules and exit")
+    parser.add_argument("--diagnostics", action="store_true", help="Run system integrity diagnostics")
     parser.add_argument("--version", action="version", version=f"tessera {__version__}")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     args = parser.parse_args()
@@ -34,6 +41,11 @@ def main() -> int:
 
     config = TesseraConfig.from_env()
     kernel = Kernel(config=config)
+
+    if args.diagnostics:
+        report = run_system_diagnostics()
+        print(json.dumps(report, indent=2))
+        return 0 if report.get('status') == 'HEALTHY' else 1
 
     if args.list_modules:
         registry = kernel.registry.discover()
