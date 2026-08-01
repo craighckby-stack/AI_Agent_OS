@@ -1,7 +1,21 @@
 #!/bin/bash
 # scripts/release.sh — Cut a new Tessera release.
+# Role: Orchestrates version bumping, changelog updates, and git tagging.
+# Integration: Connects to the Enterprise Diagnostic Engine for pre-flight validation.
 # Usage: ./scripts/release.sh 0.2.0
+
 set -e
+
+# --- Pre-flight Diagnostic Hook ---
+# Ensures environment integrity before mutation
+if [ -f "scripts/diagnostic_hook.sh" ]; then
+    echo "[DIAGNOSTIC] Running pre-flight integrity checks..."
+    bash scripts/diagnostic_hook.sh --release-mode
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Diagnostic check failed. Aborting release."
+        exit 1
+    fi
+fi
 
 VERSION="${1:?Usage: ./scripts/release.sh <version>}"
 
