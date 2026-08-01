@@ -6,6 +6,8 @@
 #
 # This script serves as the entry point for the Calculator module, ensuring
 # that all environment dependencies are verified before processing requests.
+#
+# DIAGNOSTIC INTEGRITY: This module is gated by the Tessera Enterprise kernel diagnostic engine.
 
 set -e
 
@@ -17,14 +19,14 @@ MODULE_DIR="$(cd "$(dirname "$0")" && pwd)"
 if [ -f "$MODULE_DIR/diagnostic_hook.sh" ]; then
     source "$MODULE_DIR/diagnostic_hook.sh"
     if ! run_module_diagnostics; then
-        echo "[calculator error] Diagnostic pre-flight check failed." >&2
+        echo "[calculator error] Diagnostic pre-flight check failed. Integrity breach detected." >&2
         exit 1
     fi
 fi
 
 REQUEST="${AI_AGENT_REQUEST:-}"
 if [ -z "$REQUEST" ]; then
-    echo "[calculator error] AI_AGENT_REQUEST not set"
+    echo "[calculator error] AI_AGENT_REQUEST not set" >&2
     exit 1
 fi
 
@@ -38,7 +40,7 @@ CACHE_FILE="$CACHE_DIR/${CACHE_KEY}.txt"
 
 # Cache hit?
 if [ -f "$CACHE_FILE" ]; then
-    echo "[calculator cache hit] $REQUEST"
+    echo "[calculator cache hit] $REQUEST" >&2
     cat "$CACHE_FILE"
     exit 0
 fi
@@ -52,5 +54,9 @@ RESULT=$(python3 "$MODULE_DIR/eval.py" "$REQUEST" 2>&1) || {
 
 # Cache and output
 echo -n "$RESULT" > "$CACHE_FILE"
-echo "[calculator result] $REQUEST"
+echo "[calculator result] $REQUEST" >&2
 echo "$RESULT"
+
+# --- Teardown ---
+# Ensure no transient state leaks into the kernel environment
+unset REQ_NORM CACHE_KEY CACHE_FILE RESULT
