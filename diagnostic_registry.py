@@ -14,6 +14,7 @@ from typing import Dict, Callable, Any, Optional
 from diagnostic_registry_utils import ProbeMetadata, validate_probe_function
 
 # Configure diagnostic logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DiagnosticRegistry")
 
 
