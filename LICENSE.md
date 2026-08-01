@@ -4,7 +4,7 @@ ARCHITECTURAL SYSTEM HEADER: LICENSE & COMPLIANCE CONTROLLER
 ==============================================================================
 Role: Legal Framework & Compliance Definition
 System Context: This file defines the legal boundaries for the entire repository.
-System Health Version: 1.0.4
+System Health Version: 1.0.5
 Diagnostic Integrity Hook: [ID: LICENSE-COMPLIANCE-001] - Verified by scripts/verify-license-compliance.sh
 Integrations:
   - CI/CD Pipeline: Verified via 'scripts/verify-license-compliance.sh'
@@ -183,7 +183,7 @@ import { verifyLicenseIntegrity } from './lib/compliance-integrity';
 // Verify license compliance as part of system health check
 const integrity = await verifyLicenseIntegrity();
 if (integrity.isValid) {
-  console.log(`License Integrity: VERIFIED [v1.0.4]`);
+  console.log(`License Integrity: VERIFIED [v1.0.5]`);
 } else {
   console.error(`License Integrity: FAILED - ${integrity.reason}`);
 }
