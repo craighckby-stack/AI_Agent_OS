@@ -24,12 +24,12 @@ This file serves as the verification anchor for the `LICENSE_FAQ.md` document, `
 4. **Programmatic Verification**: This document is parsed by `lib/integrity-schema.ts` to ensure that the `Integrity Manifest` matches the runtime state of the `DiagnosticRegistry`.
 
 ## Integrity Manifest
-| Date | Component | Status | Verified By |
-| :--- | :--- | :--- | :--- |
-| 2023-10-27 | License Compliance | PASS | System Kernel |
-| 2024-05-20 | Grace Period Logic | PASS | Diagnostic Engine |
-| 2024-05-21 | System Health Version (1.0.0-DIAGNOSTIC-AWARE) | PASS | Diagnostic Context |
-| 2024-05-21 | Diagnostic Registry Telemetry | PASS | Diagnostic Engine Utils |
+| Date | Component | Status | Verified By | Telemetry ID |
+| :--- | :--- | :--- | :--- | :--- |
+| 2023-10-27 | License Compliance | PASS | System Kernel | AUTH-001 |
+| 2024-05-20 | Grace Period Logic | PASS | Diagnostic Engine | GRACE-32 |
+| 2024-05-21 | System Health Version (1.0.0-DIAGNOSTIC-AWARE) | PASS | Diagnostic Context | VER-1.0.0 |
+| 2024-05-21 | Diagnostic Registry Telemetry | PASS | Diagnostic Engine Utils | REG-TELE-01 |
 
 ## Diagnostic Telemetry Specification
 The system diagnostic suite measures execution metrics and state transitions across registered probes:
@@ -45,4 +45,4 @@ The system diagnostic suite measures execution metrics and state transitions acr
 - Health Standard: 1.0.0-DIAGNOSTIC-AWARE
 
 ## Integration
-This hook connects directly to `diagnostic_engine.py` (and `src/lib/diagnostic-engine.ts`) via the `run_system_diagnostics()` execution loop. Any failure in the compliance check will escalate to a `CRITICAL_FAILURE` status in the kernel diagnostic report and update the global `DiagnosticContext` state.
+This hook connects directly to `diagnostic_engine.py` (and `src/lib/diagnostic-engine.ts`) via the `run_system_diagnostics()` execution loop. Any failure in the compliance check will escalate to a `CRITICAL_FAILURE` status in the kernel diagnostic report and update the global `DiagnosticContext` state. All telemetry data is serialized according to the `DiagnosticResult` schema defined in `diagnostic_utils_core.py`.
