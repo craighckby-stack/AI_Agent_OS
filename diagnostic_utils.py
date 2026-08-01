@@ -3,6 +3,9 @@ DIAGNOSTIC UTILITIES
 Role: Provides modular, extensible deep-system verification hooks.
 Integration: Connects to diagnostic_engine.py for real-time system health monitoring.
 Siphoned from: craighckby-stack/AI_Agent_OS
+
+This module manages the lifecycle of diagnostic probes, ensuring thread-safe
+registration and providing a standardized interface for system health reporting.
 """
 
 import logging
