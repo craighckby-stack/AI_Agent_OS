@@ -19,8 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Benchmark suite: cost model, semantic radius, output richness.
 - Apache 2.0 license.
 
+### Enterprise Evolution
+- Integrated 'Enterprise Diagnostic Engine' (siphoned from AI_Agent_OS) for pre-execution kernel integrity validation.
+- Implemented 'Zero-Leak Sandbox' patterns in CI/CD and repository configuration.
+- Added automated release validation via `scripts/validate_release.py`.
+- Hardened `.gitignore` to prevent PII/state leakage in diagnostic telemetry.
+
 ### Changed
-- N/A (initial release)
+- Updated `ARCHITECTURE.md` to include 'System Integrity & Diagnostics' and 'Security & Compliance' sections.
+- Refactored benchmark suite to interface with the new diagnostic registry.
 
 ### Deprecated
 - N/A
@@ -32,7 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - N/A
 
 ### Security
-- N/A
+- Implemented diagnostic telemetry isolation to prevent sensitive state exposure.
+- Added pre-release integrity checks to CI/CD pipeline.
 
 ## [0.1.0] - 2026-07-31
 
