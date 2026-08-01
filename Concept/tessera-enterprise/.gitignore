@@ -71,3 +71,8 @@ $RECYCLE.BIN/
 *.secret
 *.vault
 *.bak
+
+# Diagnostic Engine Telemetry Artifacts
+telemetry_data/
+*.diag.log
+*.report.json
