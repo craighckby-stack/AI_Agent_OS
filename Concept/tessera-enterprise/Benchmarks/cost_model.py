@@ -4,7 +4,8 @@ Tessera — Cost Model Benchmark
 ================================
 
 Measures token costs for first-encounter vs repeat queries, then projects
-total cost at workload scales.
+total cost at workload scales. Integrates with the Enterprise Diagnostic Engine
+to ensure system integrity before execution.
 
 Run: python3 -m benchmarks.cost_model
 """
@@ -19,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from tessera.config import TesseraConfig
 from tessera.kernel import Kernel
+from benchmarks.diagnostic_engine import run_system_diagnostics
 
 VENDOR_PRICING = {
     "Gemini 1.5 Flash": {"input": 0.075, "output": 0.30},
@@ -38,6 +40,12 @@ def main():
     print("=" * 78)
     print("  TESSERA COST MODEL BENCHMARK")
     print("=" * 78)
+
+    # Run System Integrity Diagnostics
+    diag_report = run_system_diagnostics()
+    if diag_report['status'] != 'HEALTHY':
+        print(f"[!] CRITICAL: System health check failed: {diag_report['status']}")
+        sys.exit(1)
 
     config = TesseraConfig.from_env()
     kernel = Kernel(config=config)
@@ -84,10 +92,10 @@ def main():
     ]
     scales = [100, 1000, 10000]
 
-    # Use estimated token costs (real measurement would require LLM calls)
-    first_tokens_in, first_tokens_out = 155, 38   # measured typical
-    repeat_tokens_in, repeat_tokens_out = 0, 0    # cache hit = 0
-    baseline_tokens_in, baseline_tokens_out = 31, 33  # direct LLM call
+    # Use estimated token costs
+    first_tokens_in, first_tokens_out = 155, 38
+    repeat_tokens_in, repeat_tokens_out = 0, 0
+    baseline_tokens_in, baseline_tokens_out = 31, 33
 
     for name, first_pct, repeat_pct in patterns:
         print(f"\n{'─' * 78}")
