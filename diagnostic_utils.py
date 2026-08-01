@@ -38,7 +38,9 @@ def register_check(name: str, check_func: Callable[[], DiagnosticResult]) -> Cal
         return lambda: unregister_check(name)
 
 def unregister_check(name: str) -> None:
-    """Removes a diagnostic check from the system registry with thread safety."""
+    """
+    Removes a diagnostic check from the system registry with thread safety.
+    """
     with _registry_lock:
         if name in REGISTERED_CHECKS:
             del REGISTERED_CHECKS[name]
@@ -68,7 +70,8 @@ def perform_deep_check(check_type: str) -> DiagnosticResult:
 
 # Initialize default checks if necessary
 # This ensures the system remains operational even without external registration
-if not REGISTERED_CHECKS:
-    register_check('env_loader', lambda: DiagnosticResult(True, "System environment initialized", generate_telemetry_metadata()))
-    register_check('memory_persistence', lambda: DiagnosticResult(True, "Memory layer verified", generate_telemetry_metadata()))
-    register_check('module_registry', lambda: DiagnosticResult(True, "Module registry active", generate_telemetry_metadata()))
+with _registry_lock:
+    if not REGISTERED_CHECKS:
+        register_check('env_loader', lambda: DiagnosticResult(True, "System environment initialized", generate_telemetry_metadata()))
+        register_check('memory_persistence', lambda: DiagnosticResult(True, "Memory layer verified", generate_telemetry_metadata()))
+        register_check('module_registry', lambda: DiagnosticResult(True, "Module registry active", generate_telemetry_metadata()))
