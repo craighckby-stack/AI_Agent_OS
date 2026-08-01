@@ -15,6 +15,15 @@ The output is the exact numerical result, formatted appropriately:
 - Floats preserve precision (e.g. `3.141592653589793`)
 - Division results are floats
 
+## Diagnostic Integrity
+
+This module is integrated with the **Enterprise Diagnostic Engine**. Before execution, the system performs a pre-flight check to validate:
+1. The integrity of the AST whitelist.
+2. The availability of the math function environment.
+3. The readiness of the evaluation sandbox.
+
+Modules must implement the `validate_calculator_environment` hook to ensure compatibility with the kernel's diagnostic lifecycle.
+
 ## Cluster key
 
 `request` — each unique expression gets its own cache slot. Repeat
