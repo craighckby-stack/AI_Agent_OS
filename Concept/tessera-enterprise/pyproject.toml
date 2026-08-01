@@ -3,18 +3,18 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "tessera-os"
+name = "tessera-enterprise"
 version = "0.1.0"
-description = "An agent OS where modules are tiles — routes, caches, and orchestrates deterministic local modules with multi-provider LLM fallback."
+description = "Tessera Enterprise: A diagnostic-aware agent OS with deterministic module orchestration and kernel-level integrity monitoring."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 authors = [
-    { name = "Tessera Contributors" },
+    { name = "Tessera Enterprise Contributors" },
 ]
-keywords = ["ai", "agent", "kernel", "llm", "cache", "routing", "modules"]
+keywords = ["ai", "agent", "kernel", "llm", "cache", "routing", "diagnostics", "enterprise"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
@@ -30,6 +30,7 @@ dependencies = []
 [project.optional-dependencies]
 image = ["pillow>=10.0.0", "numpy>=1.24.0"]
 redis = ["redis>=5.0.0"]
+diagnostic = ["pytest>=7.0", "pytest-cov>=4.0", "mypy>=1.0", "ruff>=0.1.0"]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
@@ -41,10 +42,10 @@ dev = [
 tessera = "tessera.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/your-org/tessera"
-Documentation = "https://github.com/your-org/tessera#readme"
-Repository = "https://github.com/your-org/tessera"
-Issues = "https://github.com/your-org/tessera/issues"
+Homepage = "https://github.com/tessera-enterprise/tessera"
+Documentation = "https://github.com/tessera-enterprise/tessera#readme"
+Repository = "https://github.com/tessera-enterprise/tessera"
+Issues = "https://github.com/tessera-enterprise/tessera/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/tessera"]
@@ -65,4 +66,4 @@ warn_unused_configs = true
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --cov=tessera --cov-report=term-missing"
-testpaths = ["tests"]
+testpaths = ["Tests"]
