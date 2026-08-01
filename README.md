@@ -1,5 +1,3 @@
-https://github.com/craighckby-stack/AI_Agent_OS/tree/main/Concept/tessera-enterprise
-
 <!-- 
   ARCHITECTURAL MANIFEST: AI_Agent_OS
   Role: Master Specification & Kernel Integrity Contract
