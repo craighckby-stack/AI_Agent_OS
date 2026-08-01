@@ -4,13 +4,13 @@
 # Role: Scans repository for copyright notices; integrates with system diagnostics.
 # Integration: Connects to license-diagnostic-utils.sh for real-time health reporting.
 # Governance: Enforces 'Fail-Fast' diagnostic integrity hooks.
-# Version: 1.0.2-DIAGNOSTIC-STABLE
+# Version: 1.0.3-DIAGNOSTIC-STABLE
 # ==============================================================================
 
 set -euo pipefail
 
 # System Health Versioning
-SYSTEM_HEALTH_VERSION="1.0.2"
+SYSTEM_HEALTH_VERSION="1.0.3"
 
 # Import Diagnostic Integrity Hook
 # Ensures system health before executing compliance verification
@@ -18,7 +18,7 @@ DIAGNOSTIC_UTILS="$(dirname "$0")/license-diagnostic-utils.sh"
 if [ -f "$DIAGNOSTIC_UTILS" ]; then
     source "$DIAGNOSTIC_UTILS"
 else
-    echo "[ERROR] Diagnostic utility missing. Aborting."
+    echo '{"status": "ERROR", "message": "Diagnostic utility missing. Aborting."}'
     exit 1
 fi
 
@@ -36,7 +36,8 @@ SCAN_EXTENSIONS=("py" "sh" "ts" "tsx" "js" "jsx" "go" "cpp" "h" "cs")
 EXCLUDE_DIRS=("node_modules" "dist" "build" ".git" "memory" "venv" "__pycache__")
 
 # Diagnostic-Aware Execution Wrapper
-log_diagnostic "Starting license compliance scan (v$SYSTEM_HEALTH_VERSION)..."
+START_TIME=$(date +%s)
+log_json "INFO" "Starting license compliance scan (v$SYSTEM_HEALTH_VERSION)"
 
 # Build find exclusion arguments
 EXCLUDE_ARGS=()
@@ -60,13 +61,16 @@ for ext in "${SCAN_EXTENSIONS[@]}"; do
 done
 
 # Final Reporting via Diagnostic Hook
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+
 if [ ${#NON_COMPLIANT_FILES[@]} -eq 0 ]; then
-    report_success "All $TOTAL_SCANNED files comply with license requirements."
+    report_success "All $TOTAL_SCANNED files comply with license requirements. Duration: ${DURATION}s"
     exit 0
 else
-    report_failure "Found ${#NON_COMPLIANT_FILES[@]} non-compliant files out of $TOTAL_SCANNED."
+    report_failure "Found ${#NON_COMPLIANT_FILES[@]} non-compliant files out of $TOTAL_SCANNED. Duration: ${DURATION}s"
     for file in "${NON_COMPLIANT_FILES[@]}"; do
-        echo "   - $file"
+        log_json "WARN" "Non-compliant file: $file"
     done
     exit 1
 fi
