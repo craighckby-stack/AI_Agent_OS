@@ -1,5 +1,10 @@
 # Deploying Tessera
 
+<!-- 
+ARCHITECTURAL ROLE: Deployment documentation for Tessera Enterprise.
+INTEGRATION: Connects to the Enterprise Diagnostic Engine and kernel validation pipelines.
+-->
+
 ## Single-process (development / small scale)
 
 Default configuration. Zero external dependencies.
@@ -30,6 +35,19 @@ This gives you:
 - TTL-based cache expiry
 - Cache survives process restarts
 
+## System Integrity & Diagnostic Validation
+
+Before deploying to production, ensure your environment satisfies the Enterprise Diagnostic Engine requirements. The kernel performs a pre-flight check on startup:
+
+```bash
+# Manually trigger diagnostic suite to verify environment readiness
+python -m tessera.diagnostics.run_check --verbose
+```
+
+Ensure the following paths are writable and initialized:
+- `/app/memory/`: Persistent state storage
+- `/app/modules/`: Dynamic module registry
+
 ## Docker
 
 ```bash
@@ -37,7 +55,7 @@ docker build -t tessera .
 docker run -e GEMINI_API_KEY=... tessera "what is 2+2"
 ```
 
-See `Dockerfile` for the image spec.
+See `Dockerfile` for the multi-stage build spec, which includes an automated `diagnostic-check` validation step.
 
 ## Kubernetes
 
