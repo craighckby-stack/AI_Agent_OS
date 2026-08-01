@@ -2,11 +2,13 @@
 DIAGNOSTIC ENGINE UTILITIES
 Role: Helper utilities for diagnostic execution formatting, status telemetry, and metric computation.
 Integration: Imported by diagnostic_engine.py to compute diagnostic metrics cleanly.
+Dependencies: diagnostic_utils_core (for type definitions)
 """
 
 import time
 import datetime
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Callable
+from diagnostic_utils_core import DiagnosticResult, validate_check_function
 
 
 def format_timestamp() -> str:
@@ -35,19 +37,23 @@ def summarize_diagnostic_results(checks: Dict[str, bool]) -> Dict[str, Any]:
     }
 
 
-def execute_check_with_telemetry(check_fn, check_type: str) -> Tuple[bool, float]:
+def execute_check_with_telemetry(check_fn: Callable[[], bool], check_type: str) -> Tuple[DiagnosticResult, float]:
     """
     Executes a diagnostic check and measures execution duration in milliseconds.
     
     :param check_fn: Callable check function.
     :param check_type: Identifier string for the check.
-    :return: Tuple of (check_passed, duration_ms).
+    :return: Tuple of (DiagnosticResult, duration_ms).
     """
     start_time = time.perf_counter()
+    
+    if not validate_check_function(check_fn):
+        return DiagnosticResult(False, f"Invalid check function for {check_type}", {}), 0.0
+
     try:
         passed = bool(check_fn())
         duration_ms = (time.perf_counter() - start_time) * 1000.0
-        return passed, round(duration_ms, 3)
-    except Exception:
+        return DiagnosticResult(passed, "Success", {}), round(duration_ms, 3)
+    except Exception as e:
         duration_ms = (time.perf_counter() - start_time) * 1000.0
-        return False, round(duration_ms, 3)
+        return DiagnosticResult(False, str(e), {}), round(duration_ms, 3)
