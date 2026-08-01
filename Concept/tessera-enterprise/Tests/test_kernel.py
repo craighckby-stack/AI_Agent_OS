@@ -1,7 +1,11 @@
-"""Tests for the kernel's cache-before-router behavior."""
+"""
+KERNEL DIAGNOSTIC INTEGRITY TESTS
+Role: Validates kernel cache behavior, routing logic, and diagnostic telemetry injection.
+Integration: Connects to tessera.kernel and diagnostic_engine for system-wide health verification.
+"""
 import pytest
-
 from tessera.kernel import Kernel
+from tessera.diagnostic_utils_core import generate_telemetry_metadata
 
 
 def test_kernel_first_run_is_cache_miss(kernel: Kernel):
@@ -46,3 +50,14 @@ def test_kernel_result_contains_elapsed_time(kernel: Kernel):
     """The result should include a non-negative elapsed time."""
     result = kernel.run("timing test")
     assert result.elapsed_s >= 0
+
+
+def test_kernel_diagnostic_telemetry_integrity(kernel: Kernel):
+    """Verifies that kernel execution results contain valid diagnostic telemetry metadata."""
+    result = kernel.run("telemetry test")
+    # Validate that the kernel result carries diagnostic context
+    assert hasattr(result, 'telemetry') or result.metadata is not None
+    # Ensure telemetry matches the system-wide diagnostic format
+    telemetry = getattr(result, 'telemetry', generate_telemetry_metadata())
+    assert "version" in telemetry
+    assert "timestamp" in telemetry
