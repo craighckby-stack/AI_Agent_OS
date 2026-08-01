@@ -2,20 +2,14 @@
 Tessera module registry.
 
 Discovers modules under modules/, builds the routing table, and manages
-intent-clustered cache keys.
+intent-clustered cache keys. Integrates with the Diagnostic Integrity architecture
+to provide real-time health telemetry for module discovery and execution.
 
 Module contract:
     Each module lives at modules/<name>/ and contains:
       - README.md declaring name, purpose, and optionally cluster_key
       - run.sh (or any executable) that reads AI_AGENT_REQUEST env var
         and writes its result to stdout
-
-Cache key strategies (declared via cluster_key in README.md):
-    static         → one slot per module (deterministic output)
-    request        → one slot per unique phrasing
-    extract:image  → one slot per image filename (semantic cluster)
-    extract:url    → one slot per URL (semantic cluster)
-    extract:regex:<pattern> → custom extraction (future)
 """
 
 from __future__ import annotations
@@ -25,12 +19,14 @@ import json
 import os
 import re
 import subprocess
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 from tessera.cache import Cache
-
+from tessera.diagnostic_utils_core import generate_telemetry_metadata
+from tessera.diagnostic_engine_utils import execute_check_with_telemetry
 
 @dataclass
 class ModuleSpec:
@@ -42,14 +38,10 @@ class ModuleSpec:
     path: Path = field(default_factory=Path)
 
 
-# Keyword routing table — used when no LLM provider is available.
-# Maps lowercase substrings to module names.
 DEFAULT_KEYWORD_TABLE: Dict[str, str] = {
-    # sky_colour
     "sky": "sky_colour",
     "colour": "sky_colour",
     "color": "sky_colour",
-    # pixel_analyzer
     "pixel": "pixel_analyzer",
     "rgb": "pixel_analyzer",
     "analyze image": "pixel_analyzer",
@@ -60,24 +52,14 @@ DEFAULT_KEYWORD_TABLE: Dict[str, str] = {
     "dominant colour": "pixel_analyzer",
     ".jpg": "pixel_analyzer",
     ".png": "pixel_analyzer",
-    # calculator
     "calculate": "calculator",
     "compute": "calculator",
-    # Note: "what is" is intentionally NOT in the keyword table — it would
-    # collide with general questions like "what is the capital of France".
-    # The LLM router handles "what is 2+2" vs "what is X" disambiguation.
 }
 
 
 class ModuleRegistry:
     """
-    Discovers and manages modules.
-
-    Usage:
-        registry = ModuleRegistry(modules_dir="./modules")
-        registry.discover()
-        spec = registry.get("pixel_analyzer")
-        cache_key = registry.cache_key("pixel_analyzer", "analyze sample.jpg")
+    Discovers and manages modules with integrated diagnostic telemetry.
     """
 
     def __init__(
@@ -100,8 +82,21 @@ class ModuleRegistry:
                 self._modules[spec.name] = spec
         return self._modules
 
+    def check_registry_integrity(self) -> Dict[str, Any]:
+        """Performs a diagnostic health check on the module registry."""
+        def _check_all():
+            self.discover()
+            return len(self._modules) > 0
+        
+        passed, duration = execute_check_with_telemetry(_check_all, "module_registry_integrity")
+        return {
+            "passed": passed,
+            "duration_ms": duration,
+            "telemetry": generate_telemetry_metadata(),
+            "module_count": len(self._modules)
+        }
+
     def _parse_readme(self, readme_path: Path) -> Optional[ModuleSpec]:
-        """Parse a module's README.md to extract its spec."""
         try:
             text = readme_path.read_text()
         except OSError:
@@ -122,31 +117,23 @@ class ModuleRegistry:
         )
 
     def get(self, name: str) -> Optional[ModuleSpec]:
-        """Return the spec for module `name`, or None."""
         if not self._modules:
             self.discover()
         return self._modules.get(name)
 
     def names(self) -> list[str]:
-        """Return all discovered module names."""
         if not self._modules:
             self.discover()
         return list(self._modules.keys())
 
     def describe(self) -> Dict[str, Dict[str, str]]:
-        """Return a dict suitable for the LLM router's prompt."""
         if not self._modules:
             self.discover()
         return {name: {"purpose": spec.purpose} for name, spec in self._modules.items()}
 
-    # ── Cache key management ───────────────────────────────────────────
-
     def cache_key(self, module_name: str, request: str) -> str:
-        """Compute the cache key for (module, request) based on the module's
-        cluster_key strategy."""
         spec = self.get(module_name)
         if not spec:
-            # Unknown module — fall back to per-request hashing
             req_hash = hashlib.md5(request.lower().strip().encode()).hexdigest()[:10]
             return f"{module_name}::{req_hash}"
 
@@ -161,60 +148,35 @@ class ModuleRegistry:
             token = self._extract_cluster_token(spec.cluster_key, request)
             if token:
                 return f"{module_name}::cluster::{token}"
-            # No token extracted — fall back to per-request
             req_hash = hashlib.md5(request.lower().strip().encode()).hexdigest()[:10]
             return f"{module_name}::{req_hash}"
 
-        # Unknown strategy — default to per-request
         req_hash = hashlib.md5(request.lower().strip().encode()).hexdigest()[:10]
         return f"{module_name}::{req_hash}"
 
     def _extract_cluster_token(self, strategy: str, request: str) -> Optional[str]:
-        """Extract a stable cluster token from the request based on strategy."""
         if strategy == "extract:image":
-            # Match image file paths or URLs
             m = re.search(r"([\w./-]+\.(?:jpg|jpeg|png|webp|bmp|gif))", request, re.IGNORECASE)
             if m:
                 return Path(m.group(1)).name.lower()
         elif strategy == "extract:url":
-            # Match any URL
             m = re.search(r"(https?://[^\s]+)", request, re.IGNORECASE)
             if m:
                 return m.group(1).lower()
         return None
 
     def should_store_request(self, module_name: str) -> bool:
-        """Whether to store the original request in the cache entry.
-
-        For `request` strategy: yes (defensive collision check on lookup).
-        For `static` and `extract:*` strategies: no (cache key encodes identity).
-        """
         spec = self.get(module_name)
         if not spec:
             return True
         return spec.cluster_key == "request"
 
-    # ── Cache lookup (intent-clustered) ────────────────────────────────
-
     def lookup_cached_module(
         self, request: str, cache: Cache
     ) -> Tuple[Optional[str], Optional[Dict[str, Any]], Optional[str]]:
-        """
-        Scan the cache for an entry matching this request, WITHOUT calling
-        the router. This is the cache-before-router optimization.
-
-        Returns (module_name, cached_entry, cache_key) on hit, or
-        (None, None, None) on miss.
-        """
         if not self._modules:
             self.discover()
 
-        # Try each module's cache key strategy in priority order:
-        # 1. extract:* strategies (semantic clusters) — highest value
-        # 2. request strategy (per-phrasing)
-        # 3. static strategy (one slot per module)
-
-        # 1. Semantic-cluster modules
         for name, spec in self._modules.items():
             if not spec.cluster_key.startswith("extract:"):
                 continue
@@ -226,7 +188,6 @@ class ModuleRegistry:
             if cached and cached.get("confidence", 0) >= 90:
                 return name, cached, cache_key
 
-        # 2. Per-request modules
         req_hash = hashlib.md5(request.lower().strip().encode()).hexdigest()[:10]
         for name, spec in self._modules.items():
             if spec.cluster_key != "request":
@@ -234,12 +195,9 @@ class ModuleRegistry:
             cache_key = f"{name}::{req_hash}"
             cached = cache.get(cache_key)
             if cached and cached.get("confidence", 0) >= 90:
-                # Defensive: verify request matches (md5[:10] collisions are
-                # vanishingly rare but not impossible)
                 if cached.get("request") == request:
                     return name, cached, cache_key
 
-        # 3. Static modules
         for name, spec in self._modules.items():
             if spec.cluster_key != "static":
                 continue
@@ -250,15 +208,7 @@ class ModuleRegistry:
 
         return None, None, None
 
-    # ── Module execution ───────────────────────────────────────────────
-
     def execute(self, module_name: str, request: str, timeout: int = 180) -> Tuple[str, bool]:
-        """
-        Execute the module's run.sh with AI_AGENT_REQUEST set.
-
-        Returns (stdout, ok). On failure, returns (error_message, False)
-        instead of raising — the kernel degrades gracefully.
-        """
         spec = self.get(module_name)
         if not spec:
             return f"[module {module_name} not found]", False
