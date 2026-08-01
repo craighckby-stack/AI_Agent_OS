@@ -35,3 +35,8 @@ console.log('System Compliance Verified:', report.timestamp);
 
 ## Diagnostic Governance
 All future modules must register their compliance status via the `DiagnosticEngine` to ensure adherence to the 'Fail-Fast' architectural principle. Compliance checks are now integrated into the global diagnostic registry, allowing for automated, non-blocking verification of repository integrity. This manifest is now programmatically linked to the system kernel via the `DiagnosticIntegrityHook` interface.
+
+## Compliance Metadata
+- Schema Version: 1.0.0-DIAGNOSTIC-AWARE
+- Registry Hook: `COMPLIANCE_REGISTRY_KEY`
+- Integrity Check: `validate_compliance_state()`
