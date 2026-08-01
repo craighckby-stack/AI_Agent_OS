@@ -1,9 +1,7 @@
 /**
  * @file diagnostic-types.ts
- * @description Type definitions for the Diagnostic Engine and related subsystems.
+ * @description Shared type definitions for the diagnostic subsystem.
  */
-
-export type SystemHealthStatus = 'HEALTHY' | 'CRITICAL_FAILURE' | 'ERROR';
 
 export interface DiagnosticSummary {
   total: number;
@@ -13,11 +11,14 @@ export interface DiagnosticSummary {
   passRate: number;
 }
 
+export interface TelemetryMetadata {
+  timestamp: number;
+  version: string;
+  environment: string | undefined;
+}
+
 export interface DiagnosticResult {
-  status: SystemHealthStatus;
-  timestamp: string;
-  checks: Record<string, boolean>;
-  telemetry: Record<string, number>;
-  summary: DiagnosticSummary;
-  error?: string;
+  passed: boolean;
+  durationMs: number;
+  metadata?: TelemetryMetadata;
 }
