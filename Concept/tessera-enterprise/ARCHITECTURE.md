@@ -23,6 +23,7 @@ Tessera utilizes a dedicated **Diagnostic Engine** (siphoned from enterprise-gra
 1. **Environment Integrity:** Validates API keys, path configurations, and runtime dependencies.
 2. **Memory Persistence:** Ensures the `memory/` layer is writable and consistent.
 3. **Module Registry:** Verifies that all registered modules are executable and compliant with the Zero-Leak Sandbox architecture.
+4. **Telemetry & Diagnostic Hooks:** Validates that modules implement `DiagnosticResult` interfaces for auditability.
 
 *Failure to pass these checks results in a fail-fast state to prevent cache poisoning or undefined behavior.*
 
@@ -65,7 +66,7 @@ Tessera utilizes a dedicated **Diagnostic Engine** (siphoned from enterprise-gra
 To maintain enterprise-grade stability, Tessera enforces:
 
 - **Zero-Leak Sandbox:** Modules are isolated via subprocesses. Memory management is strictly enforced using `WeakMap` patterns in the kernel to prevent long-running process leaks.
-- **Diagnostic Telemetry:** Every execution cycle generates a diagnostic manifest, ensuring auditability of routing decisions and module performance.
+- **Diagnostic Telemetry:** Every execution cycle generates a diagnostic manifest (via `generate_telemetry_metadata`), ensuring auditability of routing decisions and module performance.
 - **Consensus Weighting:** Enterprise modules utilize dynamic consensus weighting to validate outputs across multiple providers before committing to the cache.
 
 ## Decoupled components
@@ -96,6 +97,7 @@ A Tessera module is **any executable** that:
 1. Lives at `modules/<name>/`
 2. Has a `README.md` declaring `name:`, `purpose:`, and optionally `cluster_key:`
 3. Has a `run.sh` (or any executable) that reads `AI_AGENT_REQUEST` and writes to stdout.
+4. Implements `performDiagnosticCheck` to satisfy the Diagnostic Engine requirements.
 
 ## Failure modes
 
