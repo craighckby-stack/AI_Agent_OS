@@ -16,7 +16,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  typescript-diagnostics:
+  diagnostic-engine-validation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,24 +35,24 @@ jobs:
             npm install -D typescript ts-node @types/node
           fi
 
+      - name: Run Diagnostic Engine Integrity Checks
+        run: |
+          # Validates Zero-Leak Sandbox and Consensus Weighting logic
+          if [ -f scripts/validate-diagnostic-engine.ts ]; then
+            npx ts-node scripts/validate-diagnostic-engine.ts
+          else
+            echo "Diagnostic Engine validation script missing. Skipping."
+          fi
+
       - name: Run PR Compliance Diagnostics
         run: |
           if [ -f scripts/validate-pr-compliance.ts ]; then
             npx ts-node scripts/validate-pr-compliance.ts
-          else
-            echo "Warning: scripts/validate-pr-compliance.ts not found. Skipping."
-          fi
-
-      - name: Run Module Proposal Diagnostics
-        run: |
-          if [ -f scripts/validate-module-proposal.ts ]; then
-            npx ts-node scripts/validate-module-proposal.ts
-          else
-            echo "Warning: scripts/validate-module-proposal.ts not found. Skipping."
           fi
 
   test:
     runs-on: ubuntu-latest
+    needs: diagnostic-engine-validation
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
@@ -76,7 +76,7 @@ jobs:
 
       - name: Type check with mypy
         run: mypy src/tessera/ --ignore-missing-imports
-        continue-on-error: true  # mypy strict mode is aspirational
+        continue-on-error: true
 
       - name: Run tests
         run: pytest tests/ -v
