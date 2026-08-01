@@ -1,5 +1,11 @@
 # Writing Tessera Modules
 
+<!-- 
+  ARCHITECTURAL HEADER: Tessera Module Development Guide
+  Role: Defines the contract for module creation, diagnostic integration, and caching strategies.
+  Integration: Linked to the Diagnostic Engine for pre-flight validation and kernel execution cycles.
+-->
+
 A Tessera module is **any executable** that follows a simple contract. You
 can write one in 30 seconds.
 
@@ -48,6 +54,7 @@ Modules integrated into the Enterprise environment are subject to the **Enterpri
 - Does not block execution during the `diagnostic-check` phase.
 - Returns a non-zero exit code if critical dependencies (e.g., local data files, API keys) are missing.
 - Logs diagnostic telemetry to `stderr` to avoid polluting the kernel cache.
+- Adheres to the `Zero-Leak` security standard by ensuring no sensitive data is written to logs or temporary files.
 
 ## Cluster key strategies
 
