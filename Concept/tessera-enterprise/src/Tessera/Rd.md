@@ -1,1 +1,31 @@
+<!-- 
+  TESSERA ENTERPRISE DIAGNOSTIC ARCHITECTURE SPECIFICATION
+  Role: Defines the core diagnostic integrity protocols and system health-check standards.
+  Integration: Acts as the source of truth for diagnostic hooks in the Tessera Enterprise ecosystem.
+  Dependencies: Connects to /Scripts/run_benchmarks.sh and /Scripts/release.sh via diagnostic_hook.sh.
+-->
 
+# Tessera Enterprise: Diagnostic Engine Specification
+
+## 1. Overview
+The Tessera Enterprise Diagnostic Engine is the primary gatekeeper for system health. It ensures that all critical dependencies—kernel integrity, memory persistence, and module registry status—are verified before any execution cycle.
+
+## 2. Diagnostic Integrity Protocol
+All modules must adhere to the following diagnostic-aware lifecycle:
+- **Pre-flight Validation**: Invocation of `diagnostic_hook.sh` before any file system mutation or benchmark execution.
+- **Integrity Reporting**: Standardized output using the `DiagnosticResult` schema (see `diagnostic_utils_core.py`).
+- **Telemetry**: Every check must generate metadata including `timestamp`, `thread_id`, and `version` (1.0.0-DIAGNOSTIC-AWARE).
+
+## 3. System Health-Check Standards
+| Check Type | Description | Criticality |
+| :--- | :--- | :--- |
+| `env_loader` | Validates environment variables and path configuration | High |
+| `memory_persistence` | Verifies persistence layer availability | High |
+| `module_registry` | Ensures all registered modules are discoverable | Critical |
+
+## 4. Integration Hooks
+- **Release Pipeline**: `release.sh` gates deployments on `is_healthy` status from the diagnostic engine.
+- **Benchmark Pipeline**: `run_benchmarks.sh` performs deep integrity checks to prevent false-negative results.
+
+## 5. Maintenance
+Refer to `Tests/Tg.md` for the current test-bench requirements and `Scripts/diagnostic_hook.sh` for implementation details.
