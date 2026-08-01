@@ -3,7 +3,7 @@
 ARCHITECTURAL SYSTEM SPECIFICATION & EVOLUTIONARY BLUEPRINT
 Role: Core Architectural Definition & Kernel Orchestration Schema
 System: AI Agent OS (Offline-First Autonomous Agent Kernel)
-Connections: lib/diagnostic-engine.ts, lib/diagnostic-utils.ts, lib/zero-leak-sandbox.ts, lib/consensus-weighting.ts
+Connections: lib/diagnostic-engine.ts, lib/diagnostic-utils.ts, lib/zero-leak-sandbox.ts, lib/consensus-weighting.ts, src/types/diagnostic-types.ts
 ================================================================================
 -->
 
@@ -67,6 +67,7 @@ system changes — it should never describe aspirational behavior.
 - **Diagnostic Engine (`lib/diagnostic-engine.ts`)** — kernel integrity validation with Diagnostic Integrity Hooks, fully transpiled and enhanced from the Python core.
 - **Zero-Leak Sandbox (`lib/zero-leak-sandbox.ts`)** — WeakMap-backed execution isolation to prevent memory leaks during dynamic module loading.
 - **Consensus Weighting Engine (`lib/consensus-weighting.ts`)** — dynamic consensus weighting for multi-agent validation and fallback.
+- **Diagnostic Type Registry (`src/types/diagnostic-types.ts`)** — Strict interface enforcement for all module diagnostic hooks.
 
 Known open problems (not yet solved, listed here so they don't get silently
 promoted to "done"):
@@ -166,7 +167,7 @@ To ensure the kernel remains operational, the system utilizes a diagnostic engin
 - **Module Registry Audit:** Verifies that all active modules conform to the current contract schema.
 
 ### Diagnostic Integrity Hook
-Every module and service must implement a diagnostic hook that reports to the `DiagnosticEngine`. This ensures that the system can perform a self-audit of its own operational state at any time. All modules must expose a `run_diagnostics()` method to satisfy the `Diagnostic-Aware Specification`. This pattern ensures that the system remains observable and verifiable at the kernel level.
+Every module and service must implement a diagnostic hook that reports to the `DiagnosticEngine`. This ensures that the system can perform a self-audit of its own operational state at any time. All modules must expose a `run_diagnostics()` method to satisfy the `Diagnostic-Aware Specification` (see `src/types/diagnostic-types.ts`). This pattern ensures that the system remains observable and verifiable at the kernel level.
 
 ### Diagnostic Governance
 All system components must adhere to the 'Fail-Fast' architectural principle. If a `run_diagnostics()` call returns a non-healthy status, the kernel must halt execution to prevent state corruption. Diagnostic reports are standardized to include timestamps and granular check-results to facilitate rapid debugging.
@@ -236,6 +237,7 @@ status: experimental | stable | deprecated
 | `diagnostic-engine.ts` | Kernel integrity check | Stable | Siphoned from AI_Agent_OS |
 | `zero-leak-sandbox.ts` | WeakMap-backed execution isolation | Stable | Prevents memory leaks |
 | `consensus-weighting.ts` | Dynamic consensus weighting | Stable | Multi-agent validation |
+| `diagnostic-types.ts` | Diagnostic interface enforcement | Stable | Strict type-safety |
 | GitHub account mapper | Repo/branch analysis | Stable | Handles pagination |
 | PII/secrets sanitizer | Credential scanning | Stable | Expanded token coverage |
 
