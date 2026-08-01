@@ -10,7 +10,7 @@ and verifying integrity during the execution lifecycle.
 from typing import Dict, Any, Optional
 import datetime
 import logging
-from lib.kernel_context_utils import get_system_metrics
+from lib.kernel_context_utils import get_system_metrics, format_timestamp, generate_telemetry_metadata
 
 # Diagnostic Integrity Hook
 SYSTEM_HEALTH_VERSION = "1.0.0"
@@ -29,7 +29,8 @@ class KernelContext:
         self.metadata: Dict[str, Any] = {
             "session_id": id(self),
             "status": "INITIALIZED",
-            "version": SYSTEM_HEALTH_VERSION
+            "version": SYSTEM_HEALTH_VERSION,
+            "telemetry": generate_telemetry_metadata()
         }
         logger.info(f"[CONTEXT] Initialized session: {self.metadata['session_id']}")
 
@@ -44,10 +45,11 @@ class KernelContext:
             metrics = get_system_metrics()
             return {
                 "request": self.request,
+                "timestamp": format_timestamp(),
                 "duration": (datetime.datetime.utcnow() - self.start_time).total_seconds(),
                 "metrics": metrics,
                 **self.metadata
             }
         except Exception as e:
             logger.error(f"[CONTEXT] Failed to generate report: {e}")
-            return {"status": "ERROR", "error": str(e)}
+            return {"status": "ERROR", "error": str(e), "timestamp": format_timestamp()}
