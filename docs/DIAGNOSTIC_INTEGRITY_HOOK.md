@@ -9,6 +9,7 @@ Integration:
   - diagnostic_context.py: Maintains global health state and license validation flags.
   - diagnostic_utils.py & diagnostic_utils_core.py: Formats telemetry and metadata.
   - LICENSE.md & docs/LICENSE_FAQ.md: Governs licensing terms and 32-day grace period parameters.
+  - lib/integrity-schema.ts: Defines the programmatic validation schema for this document.
 ===============================================================================
 -->
 
@@ -20,8 +21,9 @@ This file serves as the verification anchor for the `LICENSE_FAQ.md` document, `
 1. Any change to the 32-day grace period constant in `kernel.py` MUST trigger a re-validation of `docs/LICENSE_FAQ.md`.
 2. The `ComplianceValidator` (siphoned from `src/utils/compliance-validator.ts` and `src/utils/compliance_hooks.py`) MUST return `TRUE` for the `license_compliance` check in the `diagnostic_engine.py` suite.
 3. All diagnostic hooks must be registered via the `DiagnosticRegistry` to ensure kernel-level visibility and thread-safe dynamic check management.
+4. **Programmatic Verification**: This document is parsed by `lib/integrity-schema.ts` to ensure that the `Integrity Manifest` matches the runtime state of the `DiagnosticRegistry`.
 
-## Verification Registry
+## Integrity Manifest
 | Date | Component | Status | Verified By |
 | :--- | :--- | :--- | :--- |
 | 2023-10-27 | License Compliance | PASS | System Kernel |
