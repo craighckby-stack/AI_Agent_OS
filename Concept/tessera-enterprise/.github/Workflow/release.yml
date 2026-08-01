@@ -1,12 +1,31 @@
 name: Release
 
+# ARCHITECTURAL HEADER:
+# This workflow manages the release lifecycle for Tessera Enterprise.
+# It enforces 'Diagnostic Integrity' by requiring a successful system health
+# check before proceeding to build and publication, ensuring zero-leak
+# and consensus-validated releases.
+
 on:
   push:
     tags:
       - "v*"
 
 jobs:
+  diagnostic-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run Diagnostic Engine
+        run: |
+          python -c "from diagnostic_engine import run_system_diagnostics; import sys; res = run_system_diagnostics(); print(res); sys.exit(0 if res['status'] == 'HEALTHY' else 1)"
+
   release:
+    needs: diagnostic-check
     runs-on: ubuntu-latest
     permissions:
       id-token: write  # for PyPI trusted publishing
@@ -30,7 +49,6 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        # Trusted publishing — configure at https://pypi.org/manage/account/publishing/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
