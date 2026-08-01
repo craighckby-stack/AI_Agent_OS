@@ -23,6 +23,9 @@ To maintain the 'Zero-Leak Sandbox' standard, all assets must be registered in t
 1. **Integrity Check:** Assets are verified against SHA-256 checksums during the pre-flight diagnostic phase.
 2. **Diagnostic Mapping:** If an asset is required for a specific diagnostic report, it must be referenced in `diagnostic_context.py`.
 
+### Asset Integrity Protocol
+Any modification to the assets in this directory MUST trigger a re-validation of the `diagnostic_registry.py` checksums. Failure to update the registry will result in a 'CRITICAL_FAILURE' status during the next kernel boot cycle.
+
 ## Asset Registry
 
 | Asset Name | Purpose | Integrity Status |
