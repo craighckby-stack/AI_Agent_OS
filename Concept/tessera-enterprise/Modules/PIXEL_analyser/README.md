@@ -16,6 +16,13 @@ This module does **real computation** on pixel data using PIL and numpy. It prod
 - 6-sector hue distribution (red/yellow/green/cyan/blue/magenta)
 - Atmospheric interpretation heuristic
 
+## Diagnostic Integrity
+
+This module integrates with the Tessera Enterprise Diagnostic Engine. Before execution, the module must pass a pre-flight diagnostic check via `diagnostic_hook.py`. This verifies:
+- Availability of `pillow` and `numpy` libraries.
+- Read/Write permissions for the image processing cache directory.
+- Integrity of the k-means clustering environment.
+
 ## Cluster key
 
 `extract:image` — all phrasings about the same image share one cache slot.
