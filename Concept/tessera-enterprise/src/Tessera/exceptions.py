@@ -5,6 +5,7 @@ Each exception class represents a distinct failure mode so callers can
 handle them granularly without parsing error strings.
 
 Integration: Connects to diagnostic_engine.py to provide rich error telemetry.
+This module serves as the primary error propagation layer for the Tessera Enterprise kernel.
 """
 
 from __future__ import annotations
@@ -17,6 +18,13 @@ class TesseraError(Exception):
         self.context = context or get_diagnostic_context_snapshot()
         super().__init__(message)
 
+class DiagnosticException(TesseraError):
+    """Exception class that forces inclusion of diagnostic telemetry snapshots."""
+    def __init__(self, message: str, severity: str = "ERROR", extra: Optional[Dict[str, Any]] = None) -> None:
+        ctx = get_diagnostic_context_snapshot()
+        ctx.update({"severity": severity, "extra": extra or {}})
+        super().__init__(message, context=ctx)
+
 class CacheMiss(TesseraError):
     """Raised when a cache lookup misses."""
 
@@ -24,7 +32,6 @@ class ModuleFailed(TesseraError):
     """Raised when a module execution fails (non-zero exit or timeout)."""
     def __init__(self, module_name: str, message: str) -> None:
         self.module_name = module_name
-        self.message = message
         super().__init__(f"Module '{module_name}' failed: {message}")
 
 class NoModuleMatched(TesseraError):
