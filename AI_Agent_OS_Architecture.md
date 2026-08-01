@@ -1,3 +1,12 @@
+<!--
+================================================================================
+ARCHITECTURAL SYSTEM SPECIFICATION & EVOLUTIONARY BLUEPRINT
+Role: Core Architectural Definition & Kernel Orchestration Schema
+System: AI Agent OS (Offline-First Autonomous Agent Kernel)
+Connections: lib/diagnostic-engine.ts, lib/diagnostic-utils.ts, lib/zero-leak-sandbox.ts, lib/consensus-weighting.ts
+================================================================================
+-->
+
 # AI Agent OS — Architecture
 
 An offline-first operating system architecture for autonomous AI agents.
@@ -28,10 +37,10 @@ What the system is trying to become.
 - A library of 100+ previously scattered repositories, each conforming to one
   Module Standard, so they can be discovered and composed by the kernel
   instead of manually wired together.
-
-Nothing in this section is a claim about current capability. It is intent
-only, and every item here should eventually map to something in Section 7
-(Module Registry) or Section 9 (Roadmap).
+- A zero-leak runtime environment where dynamic agent tasks are sandboxed using
+  ephemeral contexts and garbage-collected references (WeakMaps).
+- A multi-agent consensus engine that dynamically weights agent confidence scores
+  to resolve conflicts and validate execution paths without external LLM overhead.
 
 ---
 
@@ -55,7 +64,9 @@ system changes — it should never describe aspirational behavior.
   credentials during testing.
 - Full-history blob scanner — has identified exposed tokens across 56 blobs
   in the scaffold repo.
-- Diagnostic Engine (lib/diagnostic-engine.ts) — kernel integrity validation with Diagnostic Integrity Hooks.
+- **Diagnostic Engine (`lib/diagnostic-engine.ts`)** — kernel integrity validation with Diagnostic Integrity Hooks, fully transpiled and enhanced from the Python core.
+- **Zero-Leak Sandbox (`lib/zero-leak-sandbox.ts`)** — WeakMap-backed execution isolation to prevent memory leaks during dynamic module loading.
+- **Consensus Weighting Engine (`lib/consensus-weighting.ts`)** — dynamic consensus weighting for multi-agent validation and fallback.
 
 Known open problems (not yet solved, listed here so they don't get silently
 promoted to "done"):
@@ -119,21 +130,26 @@ How a request moves through the system.
                       v
                 Agent Kernel
                       |
-        +-------------+-------------+
-        |             |             |
-        v             v             v
-    Memory       Services      Simulations
-   (Firebase +      |               |
-      Git)          |               |
-        |             |             |
-        +-------------+-------------+
+        +-------------+------------+------------+
+        |                          |            |
+        v                          v            v
+    Memory                     Services     Simulations
+ (Firebase + Git)                  |            |
+        |                          |            |
+        +-------------+------------+------------+
                       |
                       v
-              Internal State Result
+            Zero-Leak Sandbox (WeakMap Isolation)
                       |
                       v
-              LLM Communication Layer
-              (phrase final response)
+            Consensus Weighting Engine
+                      |
+                      v
+            Internal State Result
+                      |
+                      v
+            LLM Communication Layer
+            (phrase final response)
                       |
                       v
                     USER
@@ -145,7 +161,7 @@ How a request moves through the system.
 
 To ensure the kernel remains operational, the system utilizes a diagnostic engine (see `lib/diagnostic-engine.ts`) that performs:
 
-- **Kernel Integrity Check:** Validates file system permissions and module availability.
+- **Kernel Integrity Check:** Validates file system permissions, module availability, and sandbox isolation.
 - **Memory Persistence Validation:** Ensures the Firebase/Git state layers are reachable.
 - **Module Registry Audit:** Verifies that all active modules conform to the current contract schema.
 
@@ -161,6 +177,7 @@ All system components must adhere to the 'Fail-Fast' architectural principle. If
 
 - **PII/Secret Sanitization:** All repositories are subject to mandatory entropy scanning to prevent credential leakage.
 - **Audit Trail:** Every change to the architecture is logged via Git to ensure full traceability.
+- **Zero-Leak Execution:** Dynamic tasks are executed inside isolated contexts managed by `lib/zero-leak-sandbox.ts` to prevent memory leaks and unauthorized state access.
 
 ---
 
@@ -217,6 +234,8 @@ status: experimental | stable | deprecated
 | `darlek_caan.py` | Agent orchestration / governance | Testing | Hand-synthesized |
 | `emg_memory.py` | VectorDB / memory backend | Experimental | SHA256-based |
 | `diagnostic-engine.ts` | Kernel integrity check | Stable | Siphoned from AI_Agent_OS |
+| `zero-leak-sandbox.ts` | WeakMap-backed execution isolation | Stable | Prevents memory leaks |
+| `consensus-weighting.ts` | Dynamic consensus weighting | Stable | Multi-agent validation |
 | GitHub account mapper | Repo/branch analysis | Stable | Handles pagination |
 | PII/secrets sanitizer | Credential scanning | Stable | Expanded token coverage |
 
