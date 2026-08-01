@@ -1,4 +1,9 @@
-# Python
+# ARCHITECTURAL GATEKEEPER: .gitignore
+# Role: Defines exclusion patterns for the Tessera Enterprise repository.
+# Integration: Enforces Zero-Leak Sandbox compliance by preventing sensitive runtime state,
+# diagnostic logs, and local module caches from entering the version control system.
+
+# Python Runtime & Build Artifacts
 __pycache__/
 *.py[cod]
 *$py.class
@@ -21,13 +26,13 @@ wheels/
 *.egg
 MANIFEST
 
-# Virtual envs
+# Virtual Environments
 venv/
 .venv/
 env/
 ENV/
 
-# IDE
+# IDE & Editor Configurations
 .vscode/
 .idea/
 *.swp
@@ -35,22 +40,34 @@ ENV/
 *~
 .DS_Store
 
-# Testing
+# Testing & Diagnostic Infrastructure
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
 .mypy_cache/
 .ruff_cache/
+.diagnostic_cache/
 
-# Tessera runtime state (never commit)
+# Tessera Enterprise Runtime State (CRITICAL: Never Commit)
 memory/
 modules/*/.cache/
+modules/*/.state/
 *.log
+*.diagnostic.json
 .env
+.env.local
+.env.*.local
 
-# OS
+# OS & System Junk
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+
+# Security & PII Protection
+*.key
+*.pem
+*.secret
+*.vault
+*.bak
