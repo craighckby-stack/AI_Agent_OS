@@ -1,25 +1,31 @@
 #!/bin/bash
 # pixel_analyzer/run.sh — Deep image color analysis module.
 #
+# ARCHITECTURAL ROLE:
+#   Executes image color analysis with pre-flight diagnostic validation.
+#   Integrates with the Enterprise Diagnostic Engine to ensure environment stability.
+#
 # INVOCATION:
 #   kernel.py sets AI_AGENT_REQUEST to the user's natural-language request.
-#   This module extracts an image path from the request, OR falls back to
-#   a default test image if none is provided.
 #
 # OUTPUT:
-#   Structured JSON report with RGB means, dominant colors (k-means),
-#   brightness histogram, hue distribution, and atmospheric interpretation.
-#
-# CACHING:
-#   Output is cached per-image by file hash. Repeated analysis of the same
-#   image returns instantly with zero compute cost. The kernel's
-#   intent-clustered cache (extract:image) ALSO means all phrasings about
-#   the same image share one slot at the kernel level.
+#   Structured JSON report with RGB means, dominant colors, and atmospheric interpretation.
 
 set -e
 
-REQUEST="${AI_AGENT_REQUEST:-}"
 MODULE_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# 1. PRE-FLIGHT DIAGNOSTIC HOOK
+# Ensures environment integrity before compute-heavy analysis
+if [ -f "$MODULE_DIR/diagnostic_hook.sh" ]; then
+    source "$MODULE_DIR/diagnostic_hook.sh"
+    if ! run_preflight_diagnostics; then
+        echo "[pixel_analyzer] Diagnostic check failed. Aborting execution." >&2
+        exit 1
+    fi
+fi
+
+REQUEST="${AI_AGENT_REQUEST:-}"
 CACHE_DIR="$MODULE_DIR/.cache"
 mkdir -p "$CACHE_DIR"
 
