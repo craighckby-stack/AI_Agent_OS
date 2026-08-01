@@ -1,8 +1,13 @@
-"""Tests for the router cache (caches routing decisions)."""
+"""
+ROUTER CACHE DIAGNOSTIC TEST SUITE
+Role: Validates router cache integrity, normalization logic, and diagnostic telemetry integration.
+Integration: Connects to tessera.router_cache and diagnostic_utils_core for observability verification.
+"""
 import pytest
 
 from tessera.cache import FileCache
 from tessera.router_cache import RouterCache
+from tessera.diagnostic_utils_core import generate_telemetry_metadata
 
 
 def test_router_cache_miss_returns_none(file_cache: FileCache):
@@ -34,3 +39,18 @@ def test_router_cache_different_requests_get_different_slots(file_cache: FileCac
     rc.set_decision("request two", "module_b")
     assert rc.get_decision("request one") == "module_a"
     assert rc.get_decision("request two") == "module_b"
+
+
+def test_router_cache_diagnostic_telemetry(file_cache: FileCache):
+    """Verifies that router cache operations are compatible with diagnostic telemetry metadata."""
+    rc = RouterCache(cache=file_cache)
+    rc.set_decision("telemetry_test", "module_x")
+    
+    # Validate telemetry generation
+    metadata = generate_telemetry_metadata()
+    assert "timestamp" in metadata
+    assert "version" in metadata
+    assert metadata["version"] == "1.0.0-DIAGNOSTIC-AWARE"
+    
+    # Verify cache integrity post-telemetry check
+    assert rc.get_decision("telemetry_test") == "module_x"
