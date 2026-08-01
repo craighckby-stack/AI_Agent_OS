@@ -38,8 +38,8 @@ node -e "console.log(require('./lib/issue-diagnostic-reporter').runDiagnosticRep
 <details>
 <summary><b>Click to expand Diagnostic Report Output</b></summary>
 
-```markdown
-<!-- PASTE DIAGNOSTIC REPORT HERE -->
+```json
+<!-- PASTE JSON DIAGNOSTIC REPORT HERE -->
 ```
 </details>
 
