@@ -11,55 +11,52 @@ import os
 import logging
 from typing import Tuple, Dict, Any
 from lib.env_schema_definitions import REQUIRED_ENV_KEYS
+from lib.diagnostic_utils_core import DiagnosticResult, generate_telemetry_metadata
 
 # System Integrity Constants
 SYSTEM_HEALTH_VERSION = "1.0.0"
 PROTOCOL_VERSION = "DIAGNOSTIC_V1"
 
-# Diagnostic Registry Hook
-VERIFICATION_REGISTRY = {
-    "validator_type": "EnvValidator",
-    "version": SYSTEM_HEALTH_VERSION,
-    "protocol": PROTOCOL_VERSION
-}
-
 logger = logging.getLogger("EnvValidator")
 
 class EnvValidator:
     """
-    Encapsulates environment validation logic with stateful tracking.
+    Encapsulates environment validation logic with stateful tracking and telemetry.
     """
     def __init__(self, required_keys: list = None):
         self.required_keys = required_keys or REQUIRED_ENV_KEYS
-        self.registry = VERIFICATION_REGISTRY
+        self.version = SYSTEM_HEALTH_VERSION
 
-    def validate(self) -> Tuple[bool, Dict[str, Any]]:
+    def validate(self) -> DiagnosticResult:
         """
         Performs schema-based validation of environment variables.
-        Returns (is_valid, details).
+        Returns a structured DiagnosticResult.
         """
         try:
             missing = [key for key in self.required_keys if key not in os.environ]
             is_valid = len(missing) == 0
             
-            details = {
+            metadata = {
                 "missing_keys": missing,
                 "total_checked": len(self.required_keys),
-                "status": "VALID" if is_valid else "INVALID",
-                "version": self.registry["version"]
+                "telemetry": generate_telemetry_metadata(),
+                "version": self.version
             }
             
+            message = "Environment configuration valid" if is_valid else f"Missing keys: {', '.join(missing)}"
+            
             if not is_valid:
-                logger.warning(f"[ENV_VALIDATOR] Validation failed: Missing {missing}")
+                logger.warning(f"[ENV_VALIDATOR] Validation failed: {message}")
                 
-            return is_valid, details
+            return DiagnosticResult(passed=is_valid, message=message, metadata=metadata)
         except Exception as e:
             logger.error(f"[ENV_VALIDATOR] Critical error during validation: {e}")
-            return False, {"error": str(e)}
+            return DiagnosticResult(passed=False, message=str(e), metadata={"error": True})
 
 def validate_env_schema() -> Tuple[bool, Dict[str, Any]]:
     """
     Legacy-compatible wrapper for the EnvValidator class.
     """
     validator = EnvValidator()
-    return validator.validate()
+    result = validator.validate()
+    return result.passed, {"status": "VALID" if result.passed else "INVALID", **result.metadata}
