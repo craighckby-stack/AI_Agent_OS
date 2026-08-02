@@ -5,6 +5,7 @@ name: Release
 # It enforces 'Diagnostic Integrity' by requiring a successful system health
 # check before proceeding to build and publication, ensuring zero-leak
 # and consensus-validated releases.
+# Integration: Connects to lib/diagnostic-engine.ts and diagnostic_engine.py.
 
 on:
   push:
@@ -16,11 +17,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run Diagnostic Engine
+
+      - name: Run Integrity Gate
+        run: |
+          chmod +x .github/scripts/integrity-check.sh
+          ./.github/scripts/integrity-check.sh
+
+      - name: Run Diagnostic Engine (Python)
         run: |
           python -c "from diagnostic_engine import run_system_diagnostics; import sys; res = run_system_diagnostics(); print(res); sys.exit(0 if res['status'] == 'HEALTHY' else 1)"
 
