@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "timestamp": "2026-08-02T12:24:17.533989+00:00",
+    "hostname": "f56feab07f6e",
+    "build_id": "1785673457",
+    "step": "2_execute.sh",
+    "status": "success",
+    "artifact": "workspace/artifact.txt"
+  },
+  {
+    "timestamp": "2026-08-02T12:24:23.941601+00:00",
+    "step": "3_verify.py",
+    "status": "success",
+    "debate_audit": {
+      "architect_defense": "Mock Architect: Build output exists and state reports success.",
+      "disruptor_critique": "Mock Architect: Build output exists and state reports success.",
+      "realist_verdict": {
+        "passed": true,
+        "confidence": 0.85,
+        "reasoning": "Mock mode: proceeding with caution.",
+        "next_actions": "Trigger cleanup"
+      }
+    }
+  },
+  {
+    "timestamp": "2026-08-02T12:24:24.924436+00:00",
+    "step": "5_finalize.py",
+    "status": "pipeline_complete"
+  }
+]
