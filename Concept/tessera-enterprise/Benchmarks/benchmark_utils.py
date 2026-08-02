@@ -1,17 +1,18 @@
-"""
-BENCHMARK UTILITIES
-Role: Telemetry and execution wrappers for benchmark metrics.
-"""
-
+from __future__ import annotations
 import time
-from typing import Callable, Dict, Any
+from typing import Any, Dict, NamedTuple
 
-def run_with_telemetry(func: Callable) -> Dict[str, Any]:
-    """Executes a benchmark function and returns performance metrics."""
-    start = time.perf_counter()
-    try:
-        result = func()
-        duration = (time.perf_counter() - start) * 1000
-        return {"status": "success", "duration_ms": round(duration, 3), "data": result}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+class BenchmarkResult(NamedTuple):
+    name: str
+    passed: bool
+    duration_ms: float
+    metadata: Dict[str, Any]
+
+def format_benchmark_report(results: list[BenchmarkResult]) -> Dict[str, Any]:
+    """Aggregates benchmark results into a structured report."""
+    return {
+        "timestamp": time.time(),
+        "total_executed": len(results),
+        "passed_count": sum(1 for r in results if r.passed),
+        "results": [r._asdict() for r in results]
+    }
