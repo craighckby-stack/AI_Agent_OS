@@ -1,13 +1,15 @@
 <!-- 
   AI AGENT OS: MATHEMATICAL & ALGORITHMIC SPECIFICATION
-  Role: Details the mathematical formulations for Dynamic Consensus Weighting and Zero-Leak Sandboxing.
+  Role: Details the mathematical formulations for Dynamic Consensus Weighting, Zero-Leak Sandboxing, and Game-Theoretic Orchestration.
   Connected to: Concept/Readme.md, src/lib/consensus-weighting.ts, src/lib/zero-leak-sandbox.ts
   Status: ACTIVE SPECIFICATION
 -->
 
 # Mathematical & Algorithmic Specification
 
-This document outlines the mathematical formulations and memory management strategies implemented in the AI Agent OS kernel to ensure high-performance, leak-free, and consensus-driven multi-agent execution.
+This document outlines the mathematical formulations, memory management strategies, and game-theoretic orchestration models implemented in the AI Agent OS kernel to ensure high-performance, leak-free, and consensus-driven multi-agent execution.
+
+---
 
 ## 1. Dynamic Consensus Weighting
 
@@ -52,14 +54,4 @@ In traditional multi-agent architectures, keeping references to agent execution 
 
 ### WeakMap-Based Lifecycle Management
 
-To guarantee zero-leak execution, the TypeScript kernel utilizes `WeakMap` structures to store agent-specific metadata and execution contexts. 
-
-```typescript
-// Architectural Pattern
-const executionContexts = new WeakMap<AgentInstance, ExecutionContext>();
-```
-
-#### Why WeakMaps?
-1. **Garbage Collection Guarantee**: Unlike standard `Map` or `Set` collections, `WeakMap` holds *weak* references to its keys (the `AgentInstance`).
-2. **Automatic Cleanup**: When an agent instance goes out of scope (e.g., after completing a task or being decommissioned), its entry in the `WeakMap` is automatically marked for garbage collection, reclaiming all associated `ExecutionContext` memory without requiring manual teardown routines.
-3. **Encapsulation**: Prevents external modules from accessing or modifying private execution states, preserving strict sandbox boundaries.
+To guarantee zero-leak execution, the TypeScript kernel utilizes `WeakMap` structures to store agent-specific metadata and execution contexts.
