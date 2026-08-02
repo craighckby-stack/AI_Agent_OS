@@ -1,37 +1,40 @@
 #!/bin/bash
 # general_qa/run.sh — LLM-backed fallback module with per-query disk cache.
 # Role: Enterprise-grade QA module with pre-flight diagnostic validation.
-# Integration: Connects to diagnostic_hook.sh for environment integrity checks.
-# Version: 1.0.0-DIAGNOSTIC-AWARE
+# Integration: Connects to diagnostic_hook.sh and telemetry_helper.sh.
+# Version: 1.1.0-DIAGNOSTIC-AWARE
 
 set -e
 
-# 1. PRE-FLIGHT DIAGNOSTIC CHECK
+# 1. INITIALIZATION & TELEMETRY
 MODULE_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$MODULE_DIR/telemetry_helper.sh"
+
+# 2. PRE-FLIGHT DIAGNOSTIC CHECK
 if [ -f "$MODULE_DIR/diagnostic_hook.sh" ]; then
     source "$MODULE_DIR/diagnostic_hook.sh"
     if ! perform_pre_flight_check; then
-        echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] [general_qa error] Pre-flight diagnostic check failed." >&2
+        log_event "error" "Pre-flight diagnostic check failed."
         exit 1
     fi
 fi
 
-# 2. CORE EXECUTION
+# 3. CORE EXECUTION
 REQUEST="${AI_AGENT_REQUEST:-}"
 if [ -z "$REQUEST" ]; then
-    echo "[general_qa error] AI_AGENT_REQUEST not set"
+    log_event "error" "AI_AGENT_REQUEST not set"
     exit 1
 fi
 
 CACHE_DIR="$MODULE_DIR/.cache"
 mkdir -p "$CACHE_DIR"
 
-# Per-query cache key
+# Per-query cache key generation
 REQ_NORM=$(echo -n "$REQUEST" | tr '[:upper:]' '[:lower:]' | tr -s ' ')
 CACHE_KEY=$(echo -n "$REQ_NORM" | md5sum | cut -d' ' -f1)
 CACHE_FILE="$CACHE_DIR/${CACHE_KEY}.json"
 
-# Cache hit?
+# Cache hit validation
 if [ -f "$CACHE_FILE" ]; then
     ANSWER=$(python3 -c "
 import json
@@ -42,16 +45,16 @@ except Exception:
     print('')
 ")
     if [ -n "$ANSWER" ]; then
-        echo "[general_qa cache hit] $REQUEST"
+        log_event "info" "Cache hit for request: ${CACHE_KEY}"
         echo "$ANSWER"
         exit 0
     fi
 fi
 
-# Cache miss — call the LLM
-echo "[general_qa cache miss — calling LLM] $REQUEST" >&2
+# 4. LLM ORCHESTRATION (Cache miss)
+log_event "info" "Cache miss — calling LLM"
 TMP_OUT=$(mktemp /tmp/general_qa_XXXXXX.json)
-trap "rm -f $TMP_OUT" EXIT
+trap "cleanup_transient '$TMP_OUT'" EXIT
 
 SYS_PROMPT="You are a concise factual assistant. Answer in 1-3 sentences. No headers, no markdown, no extra commentary."
 
@@ -67,10 +70,12 @@ else
         > "$TMP_OUT"
 fi
 
+# 5. POST-PROCESSING & PERSISTENCE
 python3 -c "
 import json
 try:
-    d = json.load(open('$TMP_OUT'))
+    with open('$TMP_OUT', 'r') as f:
+        d = json.load(f)
     answer = d['choices'][0]['message']['content'].strip()
     usage = d.get('usage', {})
     out = {
@@ -80,7 +85,8 @@ try:
         'total_tokens': usage.get('total_tokens', 0),
         'model': d.get('model', 'unknown'),
     }
-    json.dump(out, open('$CACHE_FILE', 'w'), indent=2)
+    with open('$CACHE_FILE', 'w') as f:
+        json.dump(out, f, indent=2)
     print(answer)
 except Exception as e:
     print(f'Error processing response: {e}')
