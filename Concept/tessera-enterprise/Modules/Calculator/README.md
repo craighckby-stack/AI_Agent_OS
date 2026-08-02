@@ -20,7 +20,7 @@ This module is integrated with the **Enterprise Diagnostic Engine**. Before exec
 2. The availability of the math function environment.
 3. The readiness of the evaluation sandbox.
 
-Modules must implement the `validate_calculator_environment` hook to ensure compatibility with the kernel's diagnostic lifecycle. This ensures that the calculator's evaluation environment is automatically subjected to the same rigorous validation as the core kernel components, maintaining the system's 'Zero-Leak' security posture.
+Modules must implement the `validate_calculator_environment` hook (see `diagnostic_hooks.py`) to ensure compatibility with the kernel's diagnostic lifecycle. This ensures that the calculator's evaluation environment is automatically subjected to the same rigorous validation as the core kernel components, maintaining the system's 'Zero-Leak' security posture.
 
 ## Cluster key
 
@@ -51,18 +51,3 @@ The evaluator uses `ast.parse` and walks the AST, only allowing:
 No `__import__`, no `eval`, no attribute access, no name lookup outside the whitelist. This is safe even on untrusted input.
 
 ## Example
-
-```bash
-tessera "what is 2+2"
-# Result: 4
-
-tessera "calculate 15 * 23"
-# Result: 345
-
-tessera "compute sqrt(144) + pi"
-# Result: 15.141592653589793
-```
-
-## Security & Compliance
-
-All calculator operations are subject to the [DIAGNOSTIC_COMPLIANCE_HOOK: TESSERA_KERNEL_V1_VALIDATED]. Any deviation from the defined AST whitelist triggers an immediate diagnostic alert, ensuring system integrity is never compromised during complex mathematical evaluation.
