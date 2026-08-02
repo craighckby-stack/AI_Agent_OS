@@ -25,11 +25,12 @@ jobs:
         uses: actions/setup-node@v4
         with: 
           node-version: '20'
+          cache: 'npm'
 
       - name: Install Node Dependencies
         run: |
           if [ -f package.json ]; then
-            npm ci || npm install
+            npm ci
           else
             npm init -y
             npm install -D typescript ts-node @types/node
@@ -64,6 +65,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
