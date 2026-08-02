@@ -6,6 +6,7 @@ Role: Extracts a math expression from a natural-language request and evaluates
 it deterministically using Python's ast module.
 
 Integration: Connects to the Enterprise Diagnostic Engine for pre-flight validation.
+Architectural Pattern: Zero-Leak Sandbox evaluation with modular telemetry.
 
 Safety: only numbers, binary/unary operators, parentheses, and a
 whitelist of math functions are allowed. No imports, no attribute
@@ -15,9 +16,8 @@ import ast
 import math
 import re
 import sys
-
-# Import diagnostic hook for pre-flight validation
 from diagnostic_hook import run_module_diagnostics
+from diagnostic_utils import format_timestamp
 
 # Whitelisted names (constants and functions)
 SAFE_NAMES = {
@@ -131,10 +131,10 @@ def format_result(value) -> str:
 
 
 def main():
-    # Pre-flight diagnostic check
+    # Pre-flight diagnostic check with timestamped telemetry
     diag_report = run_module_diagnostics()
     if diag_report.get('status') != 'HEALTHY':
-        print(f"Diagnostic Failure: {diag_report}", file=sys.stderr)
+        print(f"[{format_timestamp()}] Diagnostic Failure: {diag_report}", file=sys.stderr)
         sys.exit(1)
 
     if len(sys.argv) < 2:
