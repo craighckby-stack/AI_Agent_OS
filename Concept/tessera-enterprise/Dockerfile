@@ -1,6 +1,7 @@
 # Dockerfile for Tessera Enterprise
 # Role: Multi-stage build for high-integrity enterprise deployment.
 # Architecture: Diagnostic Engine & Zero-Leak Sandbox integration.
+# Connection: Integrates with /scripts/diagnostic_build_gate.py for pre-flight validation.
 
 FROM python:3.12-slim AS builder
 
@@ -17,13 +18,14 @@ COPY pyproject.toml README.md ./
 COPY src/ ./src/
 COPY modules/ ./modules/
 COPY Benchmarks/ ./Benchmarks/
+COPY scripts/ ./scripts/
 
 # Install dependencies and build
 RUN pip install --no-cache-dir ".[image]"
 
 # Pre-flight Diagnostic Validation
 # Ensures kernel integrity before image finalization
-RUN python -c "from Benchmarks import run_system_diagnostics; import sys; res = run_system_diagnostics(); sys.exit(0 if res['status'] == 'HEALTHY' else 1)"
+RUN python scripts/diagnostic_build_gate.py
 
 FROM python:3.12-slim AS final
 
@@ -38,15 +40,17 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /build/src ./src
 COPY --from=builder /build/modules ./modules
 
-# Create enterprise directories with correct ownership
+# Create enterprise directories with correct ownership and strict permissions
 RUN mkdir -p /app/memory/local /app/logs /app/diagnostics && \
-    chown -R tessera:tessera /app
+    chown -R tessera:tessera /app && \
+    chmod 700 /app/memory/local
 
 # Enterprise Environment Configuration
 ENV TESSERA_MODULES_DIR=/app/modules
 ENV TESSERA_CACHE_DIR=/app/memory/local
 ENV TESSERA_CACHE_BACKEND=file
 ENV TESSERA_DIAGNOSTIC_MODE=strict
+ENV PYTHONUNBUFFERED=1
 
 USER tessera
 
