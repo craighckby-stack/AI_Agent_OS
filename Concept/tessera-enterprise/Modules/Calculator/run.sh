@@ -13,20 +13,26 @@ set -e
 
 # --- Initialization ---
 MODULE_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$MODULE_DIR/diagnostic_telemetry.sh"
 
 # --- Pre-flight Diagnostic Check ---
 # Validate environment integrity before execution
 if [ -f "$MODULE_DIR/diagnostic_hook.sh" ]; then
     source "$MODULE_DIR/diagnostic_hook.sh"
     if ! run_module_diagnostics; then
-        echo "[calculator error] Diagnostic pre-flight check failed. Integrity breach detected." >&2
+        log_error "Diagnostic pre-flight check failed. Integrity breach detected."
         exit 1
     fi
 fi
 
+# Verify Python environment
+if ! verify_python_env; then
+    exit 1
+fi
+
 REQUEST="${AI_AGENT_REQUEST:-}"
 if [ -z "$REQUEST" ]; then
-    echo "[calculator error] AI_AGENT_REQUEST not set" >&2
+    log_error "AI_AGENT_REQUEST not set"
     exit 1
 fi
 
@@ -40,23 +46,25 @@ CACHE_FILE="$CACHE_DIR/${CACHE_KEY}.txt"
 
 # Cache hit?
 if [ -f "$CACHE_FILE" ]; then
-    echo "[calculator cache hit] $REQUEST" >&2
+    log_info "Cache hit for request: $REQUEST"
     cat "$CACHE_FILE"
+    cleanup_transient_state
     exit 0
 fi
 
 # Cache miss — evaluate
-echo "[calculator cache miss — evaluating] $REQUEST" >&2
+log_info "Cache miss — evaluating: $REQUEST"
 RESULT=$(python3 "$MODULE_DIR/eval.py" "$REQUEST" 2>&1) || {
-    echo "[calculator error] $RESULT" >&2
+    log_error "Evaluation failed: $RESULT"
+    cleanup_transient_state
     exit 1
 }
 
 # Cache and output
 echo -n "$RESULT" > "$CACHE_FILE"
-echo "[calculator result] $REQUEST" >&2
+log_info "Result generated for: $REQUEST"
 echo "$RESULT"
 
 # --- Teardown ---
 # Ensure no transient state leaks into the kernel environment
-unset REQ_NORM CACHE_KEY CACHE_FILE RESULT
+cleanup_transient_state
