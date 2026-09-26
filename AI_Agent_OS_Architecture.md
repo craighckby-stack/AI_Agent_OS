@@ -1,27 +1,17 @@
 <!--
+<!--
 ================================================================================
 ARCHITECTURAL SYSTEM SPECIFICATION & EVOLUTIONARY BLUEPRINT
 Role: Core Architectural Definition & Kernel Orchestration Schema
 System: AI Agent OS (Offline-First Autonomous Agent Kernel)
-Connections: lib/diagnostic-engine.ts, lib/diagnostic-utils.ts, lib/zero-leak-sandbox.ts, lib/consensus-weighting.ts, src/types/diagnostic-types.ts
+Connections:
+  - lib/diagnostic-engine.ts
+  - lib/diagnostic-utils.ts
+  - lib/zero-leak-sandbox.ts
+  - lib/consensus-weighting.ts
+  - src/types/diagnostic-types.ts
 ================================================================================
 -->
-
-# AI Agent OS — Architecture
-
-An offline-first operating system architecture for autonomous AI agents.
-
-The system separates language interaction from internal processing. A language
-model is used as an interface layer. Planning, memory, simulation, reasoning,
-and execution are handled by modular local systems.
-
-**Design metaphor:** *the agent writes to its own brain.*
-
-This is not a literal claim about cognition. It is the engineering metaphor
-that motivates the memory model below. The "brain" translates directly into
-persistent agent state — see Section 5.
-
----
 
 ## 1. Vision
 
